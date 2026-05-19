@@ -5,19 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STUDY MAX FINAL</title>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <style>
-    :root{--bg:#0b1220;--panel:#111a2b;--line:#2b3a55;--text:#e6edf7;--muted:#97a6bf;--accent:#60a5fa}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{min-height:100vh;display:grid;place-items:center;padding:24px;font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text)}
-    .hero{width:min(760px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:40px 30px}
-    .line-wrap{display:flex;flex-direction:column;gap:8px}
-    .line{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.2;display:inline-block;white-space:nowrap}
-    .typing{overflow:hidden;max-width:0;border-right:2px solid var(--text);animation:caret .7s step-end infinite}
-    .desc{margin-top:16px;color:var(--muted);font-size:.98rem;line-height:1.65}
-    .actions{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}.btn{text-decoration:none;border-radius:10px;padding:11px 16px;font-weight:700}
-    .btn.main{background:var(--accent);color:#fff}.btn.sub{border:1px solid var(--line);color:#c6d4ea}
-    @keyframes caret{50%{border-right-color:transparent}}
-  </style>
+  <link rel="stylesheet" href="./styles/index.css" />
 </head>
 <body>
   <section class="hero">
@@ -28,35 +16,7 @@
     <p class="desc">필요한 것만 남긴 시작 화면입니다. 아래 버튼으로 바로 학습을 시작하세요.</p>
     <div class="actions"><a class="btn main" href="./portal.html">학습 시작</a><a class="btn sub" href="./README.md">README</a></div>
   </section>
-<script>
-  const line1=document.getElementById('line1');
-  const line2=document.getElementById('line2');
-  const seq=[
-    {el:line1,start:'심규원, 최시원의',final:'심'},
-    {el:line2,start:'풀서비스 스터디',final:'풀 스터디'}
-  ];
+<script src="./scripts/index.js"></script>
 
-  function typeTo(el,text,duration=900){
-    el.classList.add('typing');
-    el.textContent=text;
-    el.style.maxWidth='0px';
-    requestAnimationFrame(()=>{
-      const target=el.scrollWidth;
-      el.style.transition=`max-width ${duration}ms steps(${Math.max(text.length,6)}, end)`;
-      el.style.maxWidth=target+'px';
-    });
-  }
-  function freeze(el,text){
-    el.classList.remove('typing');
-    el.style.transition='none';
-    el.textContent=text;
-    el.style.maxWidth='none';
-    el.style.borderRight='none';
-  }
-
-  typeTo(seq[0].el,seq[0].start,1000);
-  setTimeout(()=>{freeze(seq[0].el,seq[0].final);typeTo(seq[1].el,seq[1].start,900);},1300);
-  setTimeout(()=>{freeze(seq[1].el,seq[1].final);},2500);
-</script>
 </body>
 </html>
