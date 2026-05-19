@@ -1,9 +1,9 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/portal.html b/portal.html
-index 9ab93d51500e1f29685779c01a4708acb36a79c1..69bedd855dc9af8164baa48ac7886e94fd060c3f 100644
+index 9ab93d51500e1f29685779c01a4708acb36a79c1..8f2ade29d37d60e4b6b02a5ce986ddaf11164b61 100644
 --- a/portal.html
 +++ b/portal.html
-@@ -1,381 +1,235 @@
+@@ -1,381 +1,115 @@
 - (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 -diff --git a/portal.html b/portal.html
 -index b176f9834ef73dd9f2ad0cdb2053224bee0bfe97..7cce88c1e066b1ca3a21f41ecb3d475461c2ee6a 100644
@@ -390,232 +390,112 @@ index 9ab93d51500e1f29685779c01a4708acb36a79c1..69bedd855dc9af8164baa48ac7886e94
 +<head>
 +  <meta charset="UTF-8" />
 +  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-+  <title>STUDY MAX FINAL — 기말고사 학습 포털</title>
++  <title>STUDY MAX FINAL — 학습 포털</title>
 +  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
 +  <style>
 +    :root {
-+      --navy: #0f172a;
++      --nav: #0f172a;
++      --bg: #f1f5f9;
++      --panel: #ffffff;
++      --line: #dbe3ef;
++      --text: #0f172a;
++      --sub: #64748b;
 +      --primary: #2563eb;
-+      --slate: #64748b;
-+      --line: #e2e8f0;
-+      --bg: #f8fafc;
-+      --card: #ffffff;
 +    }
-+
 +    * { box-sizing: border-box; margin: 0; padding: 0; }
++    body { font-family: 'Pretendard', sans-serif; height: 100vh; display: flex; background: var(--bg); color: var(--text); }
 +
-+    body {
-+      font-family: 'Pretendard', sans-serif;
-+      background: var(--bg);
-+      color: #0f172a;
-+      height: 100vh;
-+      display: flex;
-+      overflow: hidden;
++    .sidebar { width: 230px; background: var(--nav); color: #cbd5e1; display: flex; flex-direction: column; }
++    .logo { padding: 20px 16px; text-align: center; font-weight: 800; color: #fff; border-bottom: 1px solid rgba(255,255,255,.1); }
++    .menu { padding: 10px; display: grid; gap: 6px; }
++    .menu button {
++      border: 0; border-radius: 8px; padding: 10px 12px; text-align: left; background: transparent; color: inherit; cursor: pointer;
 +    }
++    .menu button.active { background: var(--primary); color: white; font-weight: 700; }
++    .home { margin-top: auto; padding: 10px; border-top: 1px solid rgba(255,255,255,.1); }
++    .home a { display: block; text-align: center; text-decoration: none; color: #e2e8f0; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 10px; }
 +
-+    .sidebar {
-+      width: 260px;
-+      background: var(--navy);
-+      color: white;
-+      display: flex;
-+      flex-direction: column;
-+      border-right: 1px solid rgba(255, 255, 255, 0.08);
-+    }
++    .main { flex: 1; padding: 16px; display: grid; grid-template-rows: auto 1fr; gap: 12px; min-width: 0; }
++    .header { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
++    .header h1 { font-size: 1.2rem; }
++    .header p { color: var(--sub); margin-top: 4px; font-size: .92rem; }
 +
-+    .sidebar-header {
-+      padding: 24px 18px;
-+      font-weight: 800;
-+      font-size: 1.25rem;
-+      text-align: center;
-+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-+    }
-+
-+    .subject-list {
-+      flex: 1;
-+      overflow-y: auto;
-+      padding: 10px;
-+      display: flex;
-+      flex-direction: column;
-+      gap: 6px;
-+    }
-+
-+    .subject-item {
-+      border: 0;
-+      text-align: left;
-+      background: transparent;
-+      color: #cbd5e1;
-+      border-radius: 10px;
-+      padding: 12px 14px;
-+      font-size: 0.95rem;
-+      cursor: pointer;
-+      transition: 0.2s;
-+    }
-+
-+    .subject-item:hover { background: rgba(148, 163, 184, 0.15); color: #fff; }
-+    .subject-item.active { background: var(--primary); color: #fff; font-weight: 700; }
-+
-+    .sidebar-footer {
-+      padding: 14px;
-+      border-top: 1px solid rgba(255, 255, 255, 0.08);
-+    }
-+
-+    .home-btn {
-+      display: block;
-+      text-align: center;
-+      text-decoration: none;
-+      color: #e2e8f0;
-+      background: rgba(148, 163, 184, 0.16);
-+      border-radius: 10px;
-+      padding: 11px;
-+      font-weight: 700;
-+    }
-+
-+    .main {
-+      flex: 1;
-+      display: flex;
-+      flex-direction: column;
-+      padding: 22px;
-+      gap: 14px;
-+      min-width: 0;
-+    }
-+
-+    .title-box {
-+      background: var(--card);
-+      border: 1px solid var(--line);
-+      border-radius: 14px;
-+      padding: 16px 18px;
-+    }
-+
-+    .title-box h1 { font-size: 1.35rem; }
-+    .title-box p { margin-top: 6px; color: var(--slate); font-size: 0.93rem; }
-+
-+    .content-box {
-+      flex: 1;
-+      background: var(--card);
-+      border: 1px solid var(--line);
-+      border-radius: 14px;
-+      overflow: hidden;
-+      position: relative;
-+    }
-+
++    .content { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 +    .panel { display: none; height: 100%; }
 +    .panel.active { display: block; }
 +
-+    .dashboard {
-+      display: grid;
-+      gap: 14px;
-+      grid-template-columns: repeat(3, 1fr);
-+      padding: 18px;
-+    }
++    .dashboard { padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
++    .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
++    .kpi h3 { font-size: .86rem; color: var(--sub); margin-bottom: 8px; }
++    .kpi .v { font-size: 1.4rem; font-weight: 800; }
++    .memo { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
++    .memo h3 { font-size: .92rem; margin-bottom: 8px; }
++    .memo textarea { width: 100%; min-height: 170px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-family: inherit; resize: vertical; }
 +
-+    .card {
-+      border: 1px solid var(--line);
-+      border-radius: 12px;
-+      padding: 16px;
-+      background: #fff;
-+    }
-+
-+    .card h3 { color: var(--slate); font-size: 0.92rem; margin-bottom: 10px; }
-+    .card .value { font-size: 1.55rem; font-weight: 800; }
-+
-+    .memo {
-+      grid-column: 1 / -1;
-+      display: grid;
-+      gap: 8px;
-+    }
-+
-+    .memo textarea {
-+      width: 100%;
-+      min-height: 180px;
-+      resize: vertical;
-+      border: 1px solid #cbd5e1;
-+      border-radius: 10px;
-+      padding: 12px;
-+      font-family: inherit;
-+    }
-+
-+    iframe {
-+      width: 100%;
-+      height: 100%;
-+      border: none;
-+      display: block;
-+    }
-+
-+    @media (max-width: 980px) {
-+      .dashboard { grid-template-columns: 1fr; }
-+    }
++    iframe { width: 100%; height: 100%; border: none; }
++    @media (max-width: 940px) { .dashboard { grid-template-columns: 1fr; } .sidebar { width: 190px; } }
 +  </style>
 +</head>
 +<body>
 +  <aside class="sidebar">
-+    <div class="sidebar-header">STUDY MAX FINAL</div>
-+    <div class="subject-list">
-+      <button class="subject-item active" data-mode="dashboard" onclick="switchPanel('dashboard', this)">🏁 대시보드</button>
-+      <button class="subject-item" data-mode="frame" data-src="korean_hub.html" onclick="switchFrame(this, '국어 학습')">📖 국어</button>
-+      <button class="subject-item" data-mode="frame" data-src="english_hub.html" onclick="switchFrame(this, '영어 학습')">📝 영어</button>
-+      <button class="subject-item" data-mode="frame" data-src="science_hub.html" onclick="switchFrame(this, '통합과학 학습')">🧪 통합과학</button>
-+      <button class="subject-item" data-mode="frame" data-src="society_hub.html" onclick="switchFrame(this, '통합사회 학습')">🌍 통합사회</button>
-+      <button class="subject-item" data-mode="frame" data-src="mega_study.html" onclick="switchFrame(this, '정보 학습')">💻 정보</button>
-+    </div>
-+    <div class="sidebar-footer">
-+      <a class="home-btn" href="./">🏠 홈으로</a>
-+    </div>
++    <div class="logo">STUDY MAX FINAL</div>
++    <nav class="menu">
++      <button class="active" onclick="showDashboard(this)">🏁 대시보드</button>
++      <button data-src="korean_hub.html" onclick="showSubject(this, '국어 학습')">📖 국어</button>
++      <button data-src="english_hub.html" onclick="showSubject(this, '영어 학습')">📝 영어</button>
++      <button data-src="science_hub.html" onclick="showSubject(this, '통합과학 학습')">🧪 통합과학</button>
++      <button data-src="society_hub.html" onclick="showSubject(this, '통합사회 학습')">🌍 통합사회</button>
++      <button data-src="mega_study.html" onclick="showSubject(this, '정보 학습')">💻 정보</button>
++    </nav>
++    <div class="home"><a href="./">홈으로</a></div>
 +  </aside>
 +
 +  <main class="main">
-+    <section class="title-box">
-+      <h1 id="mainTitle">기말 학습 대시보드</h1>
-+      <p id="mainDesc">복잡한 요소를 줄이고, 과목/학습메모/외부자료를 분리해 깔끔하게 정리했습니다.</p>
-+    </section>
++    <header class="header">
++      <h1 id="title">기말 학습 대시보드</h1>
++      <p id="desc">화면을 단순하게 정리해서 필요한 파트만 빠르게 볼 수 있게 구성했습니다.</p>
++    </header>
 +
-+    <section class="content-box">
-+      <div id="dashboardPanel" class="panel active">
++    <section class="content">
++      <div id="dashPanel" class="panel active">
 +        <div class="dashboard">
-+          <article class="card"><h3>기말 D-DAY</h3><div class="value">D-21</div></article>
-+          <article class="card"><h3>오늘 목표</h3><div class="value">3단원</div></article>
-+          <article class="card"><h3>복습 완료율</h3><div class="value">68%</div></article>
-+          <article class="card memo">
-+            <h3>오늘 메모</h3>
-+            <textarea placeholder="오늘 공부한 내용과 내일 할 일을 간단히 정리하세요."></textarea>
-+          </article>
++          <article class="kpi"><h3>기말 D-DAY</h3><div class="v">D-21</div></article>
++          <article class="kpi"><h3>오늘 목표</h3><div class="v">3단원</div></article>
++          <article class="kpi"><h3>복습 완료율</h3><div class="v">68%</div></article>
++          <article class="memo"><h3>오늘 메모</h3><textarea placeholder="핵심만 간단히 기록하세요."></textarea></article>
 +        </div>
 +      </div>
-+      <div id="framePanel" class="panel">
-+        <iframe id="mainFrame" src="about:blank" title="학습 콘텐츠"></iframe>
-+      </div>
++      <div id="framePanel" class="panel"><iframe id="frame" src="about:blank" title="학습 페이지"></iframe></div>
 +    </section>
 +  </main>
 +
 +  <script>
-+    const titleEl = document.getElementById('mainTitle');
-+    const descEl = document.getElementById('mainDesc');
-+    const dashboard = document.getElementById('dashboardPanel');
-+    const frame = document.getElementById('framePanel');
-+    const iframe = document.getElementById('mainFrame');
++    const title = document.getElementById('title');
++    const desc = document.getElementById('desc');
++    const dashPanel = document.getElementById('dashPanel');
++    const framePanel = document.getElementById('framePanel');
++    const frame = document.getElementById('frame');
 +
-+    function clearActive() {
-+      document.querySelectorAll('.subject-item').forEach(btn => btn.classList.remove('active'));
++    function setActive(btn) {
++      document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
++      btn.classList.add('active');
 +    }
 +
-+    function switchPanel(kind, button) {
-+      clearActive();
-+      button.classList.add('active');
-+      if (kind === 'dashboard') {
-+        dashboard.classList.add('active');
-+        frame.classList.remove('active');
-+        titleEl.textContent = '기말 학습 대시보드';
-+        descEl.textContent = '복잡한 요소를 줄이고, 과목/학습메모/외부자료를 분리해 깔끔하게 정리했습니다.';
-+      }
++    function showDashboard(btn) {
++      setActive(btn);
++      dashPanel.classList.add('active');
++      framePanel.classList.remove('active');
++      title.textContent = '기말 학습 대시보드';
++      desc.textContent = '화면을 단순하게 정리해서 필요한 파트만 빠르게 볼 수 있게 구성했습니다.';
 +    }
 +
-+    function switchFrame(button, title) {
-+      clearActive();
-+      button.classList.add('active');
-+      dashboard.classList.remove('active');
-+      frame.classList.add('active');
-+      iframe.src = button.dataset.src;
-+      titleEl.textContent = title;
-+      descEl.textContent = '선택한 과목 자료를 중앙 영역에서 집중해서 학습할 수 있습니다.';
++    function showSubject(btn, heading) {
++      setActive(btn);
++      dashPanel.classList.remove('active');
++      framePanel.classList.add('active');
++      frame.src = btn.dataset.src;
++      title.textContent = heading;
++      desc.textContent = '선택한 과목에 집중할 수 있도록 중앙 화면만 사용합니다.';
 +    }
 +  </script>
 +</body>
