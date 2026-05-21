@@ -29,12 +29,19 @@ function setActive(btn) {
   btn.classList.add('active');
 }
 function showDashboard(btn) {
-  setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active');
-  title.textContent = '기말 학습 대시보드'; desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.';
+  setActive(btn);
+  dashPanel.classList.add('active');
+  framePanel.classList.remove('active');
+  title.textContent = '기말 학습 대시보드';
+  desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.';
 }
 function showSubject(btn, heading) {
-  setActive(btn); dashPanel.classList.remove('active'); framePanel.classList.add('active');
-  frame.src = btn.dataset.src; title.textContent = heading; desc.textContent = '선택 과목만 집중해서 볼 수 있습니다.';
+  setActive(btn);
+  dashPanel.classList.remove('active');
+  framePanel.classList.add('active');
+  frame.src = btn.dataset.src;
+  title.textContent = heading;
+  desc.textContent = '선택 과목만 집중해서 볼 수 있습니다.';
 }
 function renderDday() {
   if (!ddayEl) return;
@@ -48,36 +55,48 @@ function renderDday() {
 }
 function loadGoal() {
   const saved = localStorage.getItem(GOAL_STORAGE_KEY);
-  if (saved && saved.trim()) { goalValueEl.textContent = saved; goalInput.value = saved; }
+  if (saved && saved.trim()) {
+    goalValueEl.textContent = saved;
+    goalInput.value = saved;
+  }
 }
 function saveGoal() {
   const value = goalInput.value.trim();
-  if (!value) { goalMsgEl.textContent = '목표를 입력해 주세요.'; return; }
-  localStorage.setItem(GOAL_STORAGE_KEY, value); goalValueEl.textContent = value; goalMsgEl.textContent = '개인 목표가 저장되었습니다.';
-  setTimeout(() => { if (goalMsgEl.textContent === '개인 목표가 저장되었습니다.') goalMsgEl.textContent = ''; }, 1800);
+  if (!value) {
+    goalMsgEl.textContent = '목표를 입력해 주세요.';
+    return;
+  }
+  localStorage.setItem(GOAL_STORAGE_KEY, value);
+  goalValueEl.textContent = value;
+  goalMsgEl.textContent = '개인 목표가 저장되었습니다.';
+  setTimeout(() => {
+    if (goalMsgEl.textContent === '개인 목표가 저장되었습니다.') goalMsgEl.textContent = '';
+  }, 1800);
 }
 
 function initGlobalInk() {
   const canvas = document.getElementById('inkLayer');
+  const toolbar = document.getElementById('inkToolbar');
   const toggleBtn = document.getElementById('inkToggleBtn');
   const penBtn = document.getElementById('inkPenBtn');
   const eraserBtn = document.getElementById('inkEraserBtn');
   const clearBtn = document.getElementById('inkClearBtn');
   const saveBtn = document.getElementById('inkSaveBtn');
   const msg = document.getElementById('inkMsg');
-  if (!canvas || !toggleBtn || !penBtn || !eraserBtn || !clearBtn || !saveBtn || !msg) return;
+  if (!canvas || !toolbar || !toggleBtn || !penBtn || !eraserBtn || !clearBtn || !saveBtn || !msg) return;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   let drawing = false;
   let mode = 'pen';
-  let savedSnapshot = null;
 
   function setMsg(text) {
     msg.textContent = text;
     if (!text) return;
-    setTimeout(() => { if (msg.textContent === text) msg.textContent = ''; }, 1800);
+    setTimeout(() => {
+      if (msg.textContent === text) msg.textContent = '';
+    }, 1800);
   }
 
   function setTool(next) {
@@ -108,6 +127,7 @@ function initGlobalInk() {
 
   function beginStroke(e) {
     if (!document.body.classList.contains('ink-on')) return;
+    if (e.target.closest && e.target.closest('#inkToolbar')) return;
     drawing = true;
     const p = pointFromEvent(e);
     ctx.beginPath();
@@ -120,6 +140,7 @@ function initGlobalInk() {
       ctx.strokeStyle = '#0f172a';
       ctx.lineWidth = 2.5;
     }
+    e.preventDefault();
   }
 
   function moveStroke(e) {
@@ -127,6 +148,7 @@ function initGlobalInk() {
     const p = pointFromEvent(e);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
+    e.preventDefault();
   }
 
   function endStroke() {
@@ -137,8 +159,7 @@ function initGlobalInk() {
 
   function saveInk() {
     try {
-      savedSnapshot = canvas.toDataURL('image/png');
-      localStorage.setItem(INK_STORAGE_KEY, savedSnapshot);
+      localStorage.setItem(INK_STORAGE_KEY, canvas.toDataURL('image/png'));
       setMsg('손글씨 저장 완료');
     } catch (_) {
       setMsg('저장 실패');
@@ -165,11 +186,14 @@ function initGlobalInk() {
   });
   penBtn.addEventListener('click', () => setTool('pen'));
   eraserBtn.addEventListener('click', () => setTool('eraser'));
-  clearBtn.addEventListener('click', () => { ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); setMsg('전체 지움'); });
+  clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    setMsg('전체 지움');
+  });
   saveBtn.addEventListener('click', saveInk);
 
-  canvas.addEventListener('pointerdown', beginStroke);
-  canvas.addEventListener('pointermove', moveStroke);
+  canvas.addEventListener('pointerdown', beginStroke, { passive: false });
+  canvas.addEventListener('pointermove', moveStroke, { passive: false });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => canvas.addEventListener(evt, endStroke));
 
   resizeCanvas();
