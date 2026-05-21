@@ -38,5 +38,72 @@ function showSubject(btn, heading) {
   desc.textContent = '선택 과목만 집중해서 볼 수 있습니다.';
 }
 
+function initHandwriteCanvas() {
+  const canvas = document.getElementById('memoCanvas');
+  const clearBtn = document.getElementById('clearCanvasBtn');
+  if (!canvas || !clearBtn) return;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const displayWidth = canvas.clientWidth;
+    const displayHeight = canvas.clientHeight;
+    const prev = ctx.getImageData(0, 0, canvas.width || 1, canvas.height || 1);
+    canvas.width = Math.floor(displayWidth * ratio);
+    canvas.height = Math.floor(displayHeight * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = '#0f172a';
+    if (prev.width > 1 && prev.height > 1) {
+      const temp = document.createElement('canvas');
+      temp.width = prev.width;
+      temp.height = prev.height;
+      temp.getContext('2d').putImageData(prev, 0, 0);
+      ctx.drawImage(temp, 0, 0, displayWidth, displayHeight);
+    }
+  }
+
+  let drawing = false;
+
+  function pointFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    drawing = true;
+    const p = pointFromEvent(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drawing) return;
+    const p = pointFromEvent(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  });
+
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => {
+    canvas.addEventListener(evt, () => {
+      drawing = false;
+      ctx.closePath();
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+  });
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+}
+
+initHandwriteCanvas();
+
 window.showDashboard = showDashboard;
 window.showSubject = showSubject;
