@@ -1,6 +1,25 @@
+ codex/add-jekyll-theme-5asvpn
 title: STUDY MAX FINAL
 description: 기말고사 학습 포털
 lang: ko-KR
 theme: minima
 plugins:
   - jekyll-feed
+
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/_config.yml b/_config.yml
+new file mode 100644
+index 0000000000000000000000000000000000000000..dfc51e4c327cd55ece512a07032475e509b40b0c
+--- /dev/null
++++ b/_config.yml
+@@ -0,0 +1,6 @@
++title: STUDY MAX FINAL
++description: 기말고사 학습 포털
++lang: ko-KR
++theme: minima
++plugins:
++  - jekyll-feed
+ 
+EOF
+)
+ main
