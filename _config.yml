@@ -1,3 +1,11 @@
+ codex/add-jekyll-theme-0ci3ys
+title: "STUDY MAX FINAL"
+description: "기말고사 학습 포털"
+lang: "ko-KR"
+theme: minima
+plugins:
+  - jekyll-feed
+
  codex/add-jekyll-theme-5asvpn
 title: STUDY MAX FINAL
 description: 기말고사 학습 포털
@@ -22,4 +30,5 @@ index 0000000000000000000000000000000000000000..dfc51e4c327cd55ece512a07032475e5
  
 EOF
 )
+ main
  main
