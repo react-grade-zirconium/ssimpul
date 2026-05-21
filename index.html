@@ -1,204 +1,22 @@
-  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/index.html b/index.html
-index 6b7f47e8b667ab5b03adc857e22695e1ee39b30f..e3850298e1c674a471b481e0b0d62bad74da5012 100644
---- a/index.html
-+++ b/index.html
-@@ -1,142 +1,77 @@
- <!DOCTYPE html>
- <html lang="ko">
- <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
--<title>STUDY MAX — 통합 학습 포털</title>
--<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100;400;700;900&display=swap" rel="stylesheet">
-+<title>STUDY MAX FINAL — 기말고사 학습 포털</title>
-+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700;900&display=swap" rel="stylesheet">
- <style>
-     :root {
--        --primary: #2563eb;
--        --dark: #0f172a;
--        --accent: #60a5fa;
-+        --bg: #020617;
-+        --primary: #3b82f6;
-+        --secondary: #06b6d4;
-+        --text-muted: #94a3b8;
-     }
--
-     * { margin: 0; padding: 0; box-sizing: border-box; }
--    
-     body {
-         font-family: 'Pretendard', sans-serif;
--        background-color: var(--dark);
--        color: white;
--        height: 100vh;
-+        min-height: 100vh;
-+        background:
-+            radial-gradient(circle at 20% 20%, rgba(59,130,246,.24), transparent 38%),
-+            radial-gradient(circle at 80% 0%, rgba(6,182,212,.18), transparent 35%),
-+            linear-gradient(135deg, #020617 0%, #0f172a 60%, #111827 100%);
-+        color: #fff;
-         display: flex;
--        flex-direction: column;
-         align-items: center;
-         justify-content: center;
--        overflow: hidden;
--        position: relative;
-+        padding: 30px;
-     }
--
--    /* 배경 효과 */
--    .bg-gradient {
--        position: absolute;
--        top: 0; left: 0; width: 100%; height: 100%;
--        background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
--        z-index: -1;
-+    .intro-card {
-+        width: min(920px, 100%);
-+        border: 1px solid rgba(148,163,184,.25);
-+        background: rgba(15,23,42,.62);
-+        backdrop-filter: blur(6px);
-+        border-radius: 24px;
-+        padding: 42px;
-+        box-shadow: 0 20px 60px rgba(0,0,0,.35);
-     }
--
--    .container {
--        text-align: center;
--        padding: 20px;
--        animation: fadeIn 1.5s ease-out;
--        z-index: 10;
-+    .badge { display: inline-block; padding: 8px 14px; border-radius: 999px; background: rgba(59,130,246,.2); color: #bfdbfe; font-size: .86rem; font-weight: 700; }
-+    h1 { margin-top: 18px; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.08; letter-spacing: -1px; }
-+    .lead { margin-top: 14px; color: var(--text-muted); font-size: 1.05rem; line-height: 1.7; max-width: 680px; }
-+    .highlights { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-+    .highlights li { list-style: none; border: 1px solid rgba(148,163,184,.25); border-radius: 14px; padding: 14px 16px; color: #dbeafe; font-size: .95rem; }
-+    .actions { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
-+    .btn {
-+        text-decoration: none; font-weight: 700; border-radius: 12px; padding: 14px 22px; transition: .2s;
-     }
--
--    .logo-text {
--        font-size: 5rem;
--        font-weight: 900;
--        letter-spacing: -2px;
--        background: linear-gradient(to right, #ffffff, var(--accent));
--        -webkit-background-clip: text;
--        -webkit-text-fill-color: transparent;
--        margin-bottom: 10px;
--    }
--
--    .sub-text {
--        font-size: 1.2rem;
--        color: #94a3b8;
--        font-weight: 400;
--        letter-spacing: 2px;
--        text-transform: uppercase;
--    }
--
--    .start-btn {
--        margin-top: 40px;
--        padding: 18px 45px;
--        font-size: 1.1rem;
--        font-weight: 700;
--        color: white;
--        background: var(--primary);
--        border: none;
--        border-radius: 50px;
--        cursor: pointer;
--        text-decoration: none;
--        transition: all 0.3s;
--        display: inline-block;
--        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
--    }
--
--    .start-btn:hover {
--        transform: translateY(-5px);
--        background: #1d4ed8;
--        box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
--    }
--
--    /* 🔥 하단 크레딧 스타일 */
--    .credits {
--        position: absolute;
--        bottom: 40px;
--        text-align: center;
--        font-size: 0.85rem;
--        color: #64748b;
--        line-height: 1.8;
--        animation: fadeIn 2s ease-out;
--    }
--
--    .credits .role {
--        font-weight: 900;
--        color: var(--accent);
--        margin-right: 8px;
--        letter-spacing: 1px;
--    }
--
--    .credits .name {
--        color: #e2e8f0;
--        margin-right: 25px;
--    }
--
--    .credits .name:last-child {
--        margin-right: 0;
--    }
--
--    @keyframes fadeIn {
--        from { opacity: 0; transform: translateY(20px); }
--        to { opacity: 1; transform: translateY(0); }
--    }
--
--    @media (max-width: 600px) {
--        .logo-text { font-size: 3rem; }
--        .credits { font-size: 0.75rem; bottom: 20px; }
-+    .btn-primary { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; }
-+    .btn-primary:hover { transform: translateY(-2px); }
-+    .btn-ghost { border: 1px solid rgba(148,163,184,.35); color: #cbd5e1; }
-+    .credits { margin-top: 28px; color: #94a3b8; font-size: .84rem; line-height: 1.7; }
-+    @media (max-width: 768px) {
-+        .intro-card { padding: 28px; }
-+        .highlights { grid-template-columns: 1fr; }
-     }
- </style>
- </head>
- <body>
--
--    <div class="bg-gradient"></div>
--
--    <div class="container">
--        <div class="logo-area">
--            <h1 class="logo-text">STUDY MAX</h1>
--            <p class="sub-text">Ultimate Learning Portal System</p>
-+    <section class="intro-card">
-+        <span class="badge">2026 1학기 기말 대비</span>
-+        <h1>STUDY MAX FINAL</h1>
-+        <p class="lead">기말고사 범위를 빠르게 정리하고, 과목별 핵심 필기와 문제풀이를 한 곳에서 관리하는 통합 학습 포털입니다.</p>
-+        <ul class="highlights">
-+            <li>📌 과목별 시험 범위 정리</li>
-+            <li>📝 핵심 필기 & 오답 복습</li>
-+            <li>⏱️ D-day 기준 학습 동선</li>
-+        </ul>
-+        <div class="actions">
-+            <a href="./portal.html" class="btn btn-primary">기말 학습 시작하기</a>
-+            <a href="./history_interactive.html" class="btn btn-ghost">한국사 핵심 바로가기</a>
-+        </div>
-+        <div class="credits">
-+            PROJECT BY 심규원 · 최시원<br>
-+            SPECIAL THANKS TO 사회: 김현준, 이인호 / 과학: 이호
-         </div>
--
--        <a href="./portal.html" class="start-btn">학습 시작하기</a>
--    </div>
--
--    <div class="credits">
--        <span><span class="role">PROJECT BY</span> <span class="name">심규원 : 국어, 수학, 물리, 화학, 지구과학, 한국사, 최시원 : 사회, 지리, 생물, 자료 정리</span></span>
--        <span><span class="role">SPECIAL THANKS TO</span> <span class="name">사회 - 김현준, 이인호, 과학 - 이호</span></span>
--    </div>
--
-+    </section>
- </body>
- </html>
- 
-EOF
-)
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STUDY MAX FINAL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles/index.css" />
+</head>
+<body>
+  <section class="hero">
+    <div class="line-wrap">
+      <h1 id="line1" class="line"></h1>
+      <h2 id="line2" class="line"></h2>
+    </div>
+    <p class="desc">필요한 것만 남긴 시작 화면입니다. 아래 버튼으로 바로 학습을 시작하세요.</p>
+    <div class="actions"><a class="btn main" href="./portal.html">학습 시작</a><a class="btn sub" href="./README.md">README</a></div>
+  </section>
+<script src="./scripts/index.js"></script>
+
+</body>
+</html>
