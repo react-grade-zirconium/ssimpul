@@ -25,11 +25,17 @@ function freeze(el) {
 }
 
 function reduceFirstLineToShim() {
-  line1.innerHTML = '<span class="shim-core">심</span><span class="fade-out">규원, 최시원의</span>';
+  line1.innerHTML = '<span class="shim-core">심</span><span id="fadeName" class="fade-name">규원, 최시원의</span>';
+  requestAnimationFrame(() => {
+    document.getElementById('fadeName')?.classList.add('hide');
+  });
 }
 
 function removeServiceFromSecondLine() {
-  line2.innerHTML = '<span class="left-keep">풀</span><span class="fade-slide-up">서비스</span><span class="right-keep"> 스터디</span>';
+  line2.innerHTML = '<span class="left-keep">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="right-keep"> 스터디</span>';
+  requestAnimationFrame(() => {
+    document.getElementById('fadeService')?.classList.add('hide');
+  });
 }
 
 function showFinalMergedLine() {
@@ -53,14 +59,12 @@ setTimeout(() => {
   freeze(line2);
 }, 2100);
 
-// line2 등장 후 1.5초 뒤
 setTimeout(() => {
   reduceFirstLineToShim();
   removeServiceFromSecondLine();
 }, 3600);
 
-// 그로부터 1초 뒤, 심이 아래로 내려와 심풀 스터디로 전환
 setTimeout(() => {
   document.querySelector('.hero')?.classList.add('collapse-lines');
   showFinalMergedLine();
-}, 4600);
+}, 5200);
