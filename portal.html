@@ -1,3 +1,7 @@
+ codex/add-jekyll-theme-0ci3ys
+
+ codex/add-jekyll-theme-5asvpn
+ main
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -37,3 +41,513 @@
 
 </body>
 </html>
+ codex/add-jekyll-theme-0ci3ys
+
+
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/portal.html b/portal.html
+index 9ab93d51500e1f29685779c01a4708acb36a79c1..8f2ade29d37d60e4b6b02a5ce986ddaf11164b61 100644
+--- a/portal.html
++++ b/portal.html
+@@ -1,381 +1,115 @@
+- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+-diff --git a/portal.html b/portal.html
+-index b176f9834ef73dd9f2ad0cdb2053224bee0bfe97..7cce88c1e066b1ca3a21f41ecb3d475461c2ee6a 100644
+---- a/portal.html
+-+++ b/portal.html
+-@@ -1,291 +1,127 @@
+- <!DOCTYPE html>
+- <html lang="ko">
+- <head>
+-     <meta charset="UTF-8">
+-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+--    <title>STUDY MAX — 통합 학습 포털</title>
+-+    <title>STUDY MAX FINAL — 기말고사 학습 포털</title>
+-     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap" rel="stylesheet">
+-     <style>
+--        :root { 
+--            --primary: #2563eb; --dark: #1e293b; --bg: #f8fafc; 
+-+        :root {
+-+            --primary: #2563eb; --dark: #1e293b; --bg: #f8fafc;
+-             --kor-theme: #b45309; --eng-theme: #10b981; --sci-theme: #0891b2; --soc-theme: #f59e0b;
+-             --ai-theme: #8b5cf6; --thanks-theme: #f43f5e; --hist-theme: #1e3a8a;
+-         }
+--        
+-         * { box-sizing: border-box; margin: 0; padding: 0; }
+-         body { font-family: 'Pretendard', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+--
+--        /* 사이드바 */
+--        .sidebar { width: 260px; background: var(--dark); color: white; display: flex; flex-direction: column; height: 100vh; flex-shrink: 0; }
+--        .sidebar-header { padding: 30px 20px; font-size: 1.5rem; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; color: #60a5fa; }
+--        .subject-list { flex: 1; padding: 20px 0; overflow-y: auto; }
+--        .subject-item { padding: 16px 25px; cursor: pointer; transition: 0.3s; opacity: 0.6; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
+--        .subject-item:hover { background: rgba(255,255,255,0.05); opacity: 1; }
+--        .subject-item.active { opacity: 1; background: var(--primary); font-weight: bold; border-left: 5px solid #fff; }
+--
+--        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+--        .home-btn {
+--            display: flex; align-items: center; justify-content: center; gap: 8px;
+--            width: 100%; padding: 12px; background: rgba(255,255,255,0.1);
+--            color: #94a3b8; text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700;
+--        }
+--
+--        /* 메인 영역 */
+--        .main-content { flex: 1; padding: 25px; display: flex; flex-direction: column; height: 100vh; }
+--        .subject-header { margin-bottom: 15px; }
+--        .subject-title { font-size: 1.6rem; font-weight: 800; border-left: 8px solid var(--primary); padding-left: 15px; transition: 0.3s; }
+--
+--        /* 콘텐츠 컨테이너 */
+--        .content-container { flex: 1; background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0; position: relative; }
+-+        .sidebar { width: 270px; background: var(--dark); color: white; display: flex; flex-direction: column; }
+-+        .sidebar-header { padding: 26px 20px; font-size: 1.45rem; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; color: #60a5fa; }
+-+        .subject-list { flex: 1; padding: 12px 0; overflow-y: auto; }
+-+        .subject-item { padding: 15px 22px; cursor: pointer; transition: 0.25s; opacity: 0.68; display: flex; align-items: center; gap: 10px; }
+-+        .subject-item:hover { background: rgba(255,255,255,0.06); opacity: 1; }
+-+        .subject-item.active { opacity: 1; background: var(--primary); font-weight: 700; border-left: 5px solid #fff; }
+-+        .sidebar-footer { padding: 18px; border-top: 1px solid rgba(255,255,255,0.1); }
+-+        .home-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: rgba(255,255,255,0.1); color: #cbd5e1; text-decoration: none; border-radius: 8px; font-size: 0.9rem; font-weight: 700; }
+-+        .main-content { flex: 1; padding: 22px; display: flex; flex-direction: column; }
+-+        .subject-title { font-size: 1.55rem; font-weight: 800; border-left: 8px solid var(--primary); padding-left: 14px; margin-bottom: 14px; }
+-+        .content-container { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e2e8f0; position: relative; }
+-         iframe { width: 100%; height: 100%; border: none; display: block; }
+--
+--        /* 내장 섹션 스타일 */
+--        .internal-box { display: none; width: 100%; height: 100%; background: #fdfcf8; flex-direction: column; align-items: center; padding: 50px; overflow-y: auto; }
+--        
+--        /* 한국사 선택 허브 */
+--        .hub-grid { display: flex; gap: 30px; justify-content: center; align-items: center; height: 100%; }
+--        .hub-card { width: 280px; padding: 50px 30px; background: white; border: 1px solid #e2e8f0; border-radius: 24px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.02); }
+--        .hub-card:hover { transform: translateY(-10px); border-color: var(--hist-theme); box-shadow: 0 15px 30px rgba(30, 58, 138, 0.1); }
+--        .hub-card .icon { font-size: 60px; margin-bottom: 25px; }
+--        .hub-card h3 { color: var(--hist-theme); font-weight: 900; font-size: 1.4rem; margin: 0; }
+--
+--        /* ⚡ 매우 간단 요약 이동 박스 */
+--        .summary-link-box {
+--            background: linear-gradient(135deg, var(--hist-theme), #3b82f6);
+--            color: white;
+--            border-radius: 16px;
+--            padding: 25px 30px;
+--            display: flex;
+--            align-items: center;
+--            gap: 20px;
+--            cursor: pointer;
+--            margin-bottom: 30px;
+--            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.2);
+--            transition: 0.3s;
+--            border: 1px solid rgba(255,255,255,0.1);
+--        }
+--        .summary-link-box:hover {
+--            transform: translateY(-5px);
+--            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);
+--        }
+--        .summary-link-box .icon { font-size: 45px; }
+--        .summary-link-box h3 { font-size: 1.5rem; margin-bottom: 6px; color: white; font-weight: 900; letter-spacing: -0.5px; }
+--        .summary-link-box p { font-size: 0.95rem; opacity: 0.9; margin: 0; }
+--
+--        /* 부록 상세 디자인 */
+--        .appendix-wrapper { max-width: 900px; width: 100%; text-align: left; padding-bottom: 50px; }
+--        .appendix-section { margin-bottom: 30px; background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; }
+--        .appendix-section h4 { background: var(--hist-theme); color: white; display: inline-block; padding: 6px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 1.1rem; }
+--        .appendix-item { margin-bottom: 20px; }
+--        .appendix-item h5 { font-size: 1.1rem; color: var(--hist-theme); margin-bottom: 10px; border-left: 4px solid var(--hist-theme); padding-left: 10px; }
+--        .appendix-item li { margin-bottom: 8px; line-height: 1.6; color: #444; list-style: none; }
+--        .appendix-item li b { color: #1e293b; }
+--
+--        /* SPECIAL THANKS 디자인 */
+--        .thanks-wrapper { max-width: 700px; width: 100%; text-align: center; }
+--        .thanks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+--        .thanks-card { background: white; padding: 20px; border-radius: 15px; border: 1px solid #eee; text-align: left; }
+--        .staff-tag { display: inline-block; padding: 2px 8px; background: #f1f5f9; border-radius: 6px; font-size: 0.8rem; font-weight: 700; margin-right: 5px; color: #475569; }
+--
+--        .back-btn { padding: 12px 30px; background: var(--dark); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+--        .back-btn:hover { background: #334155; }
+-+        .internal-box { display: none; width: 100%; height: 100%; background: #f8fafc; flex-direction: column; padding: 30px; overflow-y: auto; }
+-+
+-+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+-+        .dash-card { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; }
+-+        .dash-card h3 { font-size: .95rem; color: #475569; margin-bottom: 8px; }
+-+        .dash-value { font-size: 1.6rem; font-weight: 900; color: #0f172a; }
+-+        .notes-area { background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 20px; }
+-+        .notes-area h3 { font-size: 1.1rem; margin-bottom: 10px; color: #1e293b; }
+-+        .notes-area p { font-size: .92rem; color: #64748b; margin-bottom: 10px; }
+-+        .notes-area textarea { width: 100%; min-height: 240px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; resize: vertical; font-family: inherit; }
+-+        .notes-actions { margin-top: 10px; display: flex; gap: 8px; }
+-+        .notes-actions button { border: none; border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 700; }
+-+        .save-btn { background: #2563eb; color: #fff; }
+-+        .clear-btn { background: #e2e8f0; color: #334155; }
+-+        .save-msg { font-size: .84rem; color: #0f766e; margin-top: 8px; min-height: 16px; }
+-     </style>
+- </head>
+- <body>
+--
+- <div class="sidebar">
+--    <div class="sidebar-header">STUDY MAX</div>
+-+    <div class="sidebar-header">STUDY MAX FINAL</div>
+-     <div class="subject-list">
+--        <div class="subject-item active" onclick="go('korean_hub.html', 'korean', this)">📖 국어 (시/대화)</div>
+--        <div class="subject-item" onclick="go('english_hub.html', 'english', this)">📝 영어 (본문/문법)</div>
+--        <div class="subject-item" onclick="go('science_hub.html', 'science', this)">🧪 통합과학 (물/화/생/지)</div>
+--        <div class="subject-item" onclick="go('society_hub.html', 'society', this)">🌍 통합사회 (행복/지리)</div>
+--        <div class="subject-item" onclick="go('', 'history', this)">📚 한국사 (정리/부록)</div>
+--        <div class="subject-item" onclick="go('mega_study.html', 'info', this)">💻 정보 (알고리즘)</div>
+--        <div class="subject-item" onclick="go('ai_generator.html', 'ai', this)">🤖 AI 무한 문제 생성기</div>
+--        <div class="subject-item" onclick="go('', 'thanks', this)" style="color: #fda4af;">🌟 SPECIAL THANKS</div>
+-+        <div class="subject-item active" onclick="go('', 'dashboard', this)">🏁 기말 학습 대시보드</div>
+-+        <div class="subject-item" onclick="go('korean_hub.html', 'korean', this)">📖 국어</div>
+-+        <div class="subject-item" onclick="go('english_hub.html', 'english', this)">📝 영어</div>
+-+        <div class="subject-item" onclick="go('science_hub.html', 'science', this)">🧪 통합과학</div>
+-+        <div class="subject-item" onclick="go('society_hub.html', 'society', this)">🌍 통합사회</div>
+-+        <div class="subject-item" onclick="go('', 'history', this)">📚 한국사</div>
+-+        <div class="subject-item" onclick="go('mega_study.html', 'info', this)">💻 정보</div>
+-+        <div class="subject-item" onclick="go('ai_generator.html', 'ai', this)">🤖 AI 문제 생성기</div>
+-     </div>
+-     <div class="sidebar-footer"><a href="./index.html" class="home-btn" target="_top">🏠 인트로 화면으로</a></div>
+- </div>
+--
+- <div class="main-content">
+--    <div class="subject-header"><h1 id="mainTitle" class="subject-title">국어 통합 학습 허브</h1></div>
+-+    <h1 id="mainTitle" class="subject-title">기말고사 학습 대시보드</h1>
+-     <div class="content-container">
+--        <!-- 메인 프레임 -->
+--        <iframe id="mainFrame" src="./korean_hub.html"></iframe>
+--
+--        <!-- 1. 한국사 선택 허브 -->
+--        <div id="historyHub" class="internal-box">
+--            <div class="hub-grid">
+--                <div class="hub-card" onclick="loadHistorySummary()">
+--                    <div class="icon">📜</div>
+--                    <h3>한국사 내용 정리</h3>
+--                </div>
+--                <div class="hub-card" onclick="showAppendix()">
+--                    <div class="icon">📁</div>
+--                    <h3>한국사 부록</h3>
+--                </div>
+--            </div>
+--        </div>
+--
+--        <!-- 2. 한국사 부록 (요약 버튼 + 원래 텍스트) -->
+--        <div id="appendixBox" class="internal-box">
+--            <div class="appendix-wrapper">
+--                
+--                <!-- "한국사 매우 간단 요약" 외부 파일 이동 버튼 -->
+--                <div class="summary-link-box" onclick="loadSimpleSummaryFile()">
+--                    <div class="icon">⚡</div>
+--                    <div>
+--                        <h3>한국사 매우 간단 요약</h3>
+--                        <p>핵심만 쏙쏙 뽑은 요약 파일로 바로 넘어가려면 이 버튼을 클릭하세요!</p>
+--                    </div>
+--                </div>
+--
+--                <!-- 기존 부록 텍스트 -->
+--                <div class="appendix-section">
+--                    <h4>📜 1. 전근대사 (고대 ~ 조선)</h4>
+--                    <div class="appendix-item">
+--                        <h5>고대 및 남북국 시대</h5>
+--                        <ul>
+--                            <li>• <b>구석기 시대:</b> 대표적인 도구로 주먹도끼와 같은 뗀석기가 사용되었습니다.</li>
+--                            <li>• <b>초기 국가 (동예/옥저):</b> 동예의 풍습으로 다른 부족의 경계를 침범하면 가축이나 노비로 보상하는 '책화'가 있었습니다.</li>
+--                            <li>• <b>군장 통치:</b> 옥저와 동예에는 왕이 없었으며, 읍군이나 삼로라 불리는 군장이 다스렸습니다.</li>
+--                            <li>• <b>가야:</b> 풍부한 철을 바탕으로 철제 투구와 말 갑옷 등 뛰어난 철기 문화를 꽃피웠습니다.</li>
+--                            <li>• <b>남북국 시대 (발해/신라):</b> 발해는 당의 3성 6부제를 독자적으로 수용(유교식 명칭), 신라 말기 반란(김헌창의 난, 원종·애노의 난) 빈번.</li>
+--                        </ul>
+--                    </div>
+--                    <div class="appendix-item">
+--                        <h5>고려 시대</h5>
+--                        <ul>
+--                            <li>• <b>성종의 업적:</b> 최승로의 시무 28조 수용, 유교 통치 체제 확립, 국자감 설치 및 12목 지방관 파견.</li>
+--                            <li>• <b>과거 제도:</b> 문과, 잡과, 승과 중심으로 시행 (조선은 승과 폐지).</li>
+--                        </ul>
+--                    </div>
+--                    <div class="appendix-item">
+--                        <h5>조선 시대</h5>
+--                        <ul>
+--                            <li>• <b>태종:</b> 이방원은 두 차례의 왕자의 난을 통해 권력을 잡고 왕위에 올랐습니다.</li>
+--                            <li>• <b>중종 (조광조):</b> 현량과 실시, 소격서 폐지, 위훈 삭제 등을 주장하며 급진적 개혁 시도.</li>
+--                            <li>• <b>병자호란:</b> 인조 시기 발생, 남한산성으로 피난하여 항전 (※ 광해군은 이전 폐위).</li>
+--                        </ul>
+--                    </div>
+--                </div>
+--
+--                <div class="appendix-section">
+--                    <h4>🇰🇷 2. 근대사 (개항기 ~ 대한제국)</h4>
+--                    <div class="appendix-item">
+--                        <h5>개항 및 초기 개화 정책 (1870~80년대)</h5>
+--                        <ul>
+--                            <li>• <b>강화도 조약 (1876):</b> 최익현은 '왜양일체론'을 내세우며 조약 체결을 강력히 반대했습니다.</li>
+--                            <li>• <b>통리기무아문 (1880):</b> 개항 이후 개화 정책을 총괄하기 위해 설치된 기구입니다.</li>
+--                            <li>• <b>갑신정변 (1884):</b> 급진 개화파 주도, '3일 천하'로 종료. 유길준은 조선 중립화론을 주장했습니다.</li>
+--                        </ul>
+--                    </div>
+--                    <div class="appendix-item">
+--                        <h5>외세의 침략과 저항</h5>
+--                        <ul>
+--                            <li>• <b>외규장각 의궤 약탈:</b> 1866년 병인양요 당시 프랑스군에 의해 자행되었습니다. (※ 신미양요는 미군 충돌)</li>
+--                            <li>• <b>을미사변 (1895):</b> 일본이 명성황후를 시해한 사건.</li>
+--                            <li>• <b>독립문 건립:</b> 독립 협회가 사대주의의 상징인 영은문을 헐고 건립했습니다.</li>
+--                        </ul>
+--                    </div>
+--                    <div class="appendix-item">
+--                        <h5>대한제국 (1897~)</h5>
+--                        <ul>
+--                            <li>• <b>광무개혁:</b> 양전 사업 실시 및 토지 소유권 증서인 '지계' 발급으로 근대적 토지 소유 제도 확립 시도.</li>
+--                        </ul>
+--                    </div>
+--                </div>
+--
+--                <!-- 돌아가기 버튼 -->
+--                <div style="text-align: center; margin-top: 20px;">
+--                    <button class="back-btn" onclick="go('', 'history', null)">← 선택 화면으로 돌아가기</button>
+--                </div>
+-+        <iframe id="mainFrame" src="./korean_hub.html" style="display:none"></iframe>
+-+        <div id="dashboardBox" class="internal-box" style="display:flex;">
+-+            <div class="dashboard-grid">
+-+                <div class="dash-card"><h3>기말 D-DAY</h3><div class="dash-value">D-21</div></div>
+-+                <div class="dash-card"><h3>오늘 목표</h3><div class="dash-value">3단원</div></div>
+-+                <div class="dash-card"><h3>누적 학습시간</h3><div class="dash-value">8h 40m</div></div>
+-             </div>
+--        </div>
+--
+--        <!-- SPECIAL THANKS 박스 -->
+--        <div id="thanksBox" class="internal-box">
+--            <div class="thanks-wrapper">
+--                <h2 style="font-size: 2.5rem; color: var(--thanks-theme); font-weight: 900; margin-bottom: 20px;">SPECIAL THANKS</h2>
+--                <div class="thanks-grid">
+--                    <div class="thanks-card">
+--                        <h4 style="margin-bottom:10px;">📚 Subject Contributors</h4>
+--                        <p><span class="staff-tag">사회</span> 김현준, 이인호</p>
+--                        <p><span class="staff-tag">과학</span> 이호</p>
+--                    </div>
+--                    <div class="thanks-card">
+--                        <h4 style="margin-bottom:10px;">🛠️ Core Developers</h4>
+--                        <p><b>심규원</b> : 국어, 수학, 물리, 화학, 지구과학, 한국사</p>
+--                        <p><b>최시원</b> : 사회, 지리, 생물, 자료 정리</p>
+--                    </div>
+-+            <div class="notes-area">
+-+                <h3>📝 기말 대비 핵심 필기</h3>
+-+                <p>오늘 외울 개념, 헷갈리는 포인트, 오답 메모를 자유롭게 기록하세요.</p>
+-+                <textarea id="notesInput" placeholder="예시) 한국사 개항기: 통리기무아문(1880), 갑신정변(1884) 핵심 비교"></textarea>
+-+                <div class="notes-actions">
+-+                    <button class="save-btn" onclick="saveNotes()">필기 저장</button>
+-+                    <button class="clear-btn" onclick="clearNotes()">필기 비우기</button>
+-                 </div>
+-+                <div class="save-msg" id="saveMsg"></div>
+-             </div>
+-         </div>
+-+        <div id="historyHub" class="internal-box"><p>한국사 요약/부록은 기존 자료 페이지로 이동해 학습하세요.</p></div>
+-     </div>
+- </div>
+--
+- <script>
+-     function go(url, type, el) {
+--        if(el) {
+-+        if (el) {
+-             document.querySelectorAll('.subject-item').forEach(item => item.classList.remove('active'));
+-             el.classList.add('active');
+-         }
+-         const frame = document.getElementById('mainFrame');
+--        const internalBoxes =[document.getElementById('historyHub'), document.getElementById('appendixBox'), document.getElementById('thanksBox')];
+-+        const dashboard = document.getElementById('dashboardBox');
+-+        const historyHub = document.getElementById('historyHub');
+-         const title = document.getElementById('mainTitle');
+-+        frame.style.display = 'none'; dashboard.style.display = 'none'; historyHub.style.display = 'none';
+- 
+--        // 이동할 때마다 화면 비우기
+--        frame.style.display = 'none';
+--        internalBoxes.forEach(box => box.style.display = 'none');
+--
+--        if(type === 'history') {
+--            internalBoxes[0].style.display = 'flex';
+--            title.innerText = "한국사 학습 선택"; title.style.borderLeftColor = 'var(--hist-theme)';
+--        } else if(type === 'thanks') {
+--            internalBoxes[2].style.display = 'flex';
+--            title.innerText = "SPECIAL THANKS"; title.style.borderLeftColor = 'var(--thanks-theme)';
+-+        if (type === 'dashboard') {
+-+            dashboard.style.display = 'flex'; title.innerText = '기말고사 학습 대시보드'; title.style.borderLeftColor = 'var(--primary)';
+-+        } else if (type === 'history') {
+-+            frame.style.display = 'block'; frame.src = './history_interactive.html'; title.innerText = '한국사 범위 정리'; title.style.borderLeftColor = 'var(--hist-theme)';
+-         } else {
+--            frame.style.display = 'block'; frame.src = "./" + url;
+--            
+--            // 상단 타이틀 및 컬러 변경 로직
+--            if(type === 'korean') { title.innerText = "국어 통합 학습 허브"; title.style.borderLeftColor = 'var(--kor-theme)'; }
+--            else if(type === 'english') { title.innerText = "영어 통합 학습 허브"; title.style.borderLeftColor = 'var(--eng-theme)'; }
+--            else if(type === 'science') { title.innerText = "통합과학 (물/화/생/지)"; title.style.borderLeftColor = 'var(--sci-theme)'; }
+--            else if(type === 'society') { title.innerText = "통합사회 (행복/지리)"; title.style.borderLeftColor = 'var(--soc-theme)'; }
+--            else if(type === 'info') { title.innerText = "정보 (알고리즘)"; title.style.borderLeftColor = '#0d9488'; }
+--            else if(type === 'ai') { title.innerText = "AI 무한 문제 생성기"; title.style.borderLeftColor = 'var(--ai-theme)'; }
+-+            frame.style.display = 'block'; frame.src = './' + url;
+-+            if(type === 'korean') { title.innerText = '국어 기말 범위'; title.style.borderLeftColor = 'var(--kor-theme)'; }
+-+            else if(type === 'english') { title.innerText = '영어 기말 범위'; title.style.borderLeftColor = 'var(--eng-theme)'; }
+-+            else if(type === 'science') { title.innerText = '통합과학 기말 범위'; title.style.borderLeftColor = 'var(--sci-theme)'; }
+-+            else if(type === 'society') { title.innerText = '통합사회 기말 범위'; title.style.borderLeftColor = 'var(--soc-theme)'; }
+-+            else if(type === 'info') { title.innerText = '정보 기말 범위'; title.style.borderLeftColor = '#0d9488'; }
+-+            else if(type === 'ai') { title.innerText = 'AI 문제 생성기'; title.style.borderLeftColor = 'var(--ai-theme)'; }
+-         }
+-     }
+- 
+--    // 1. 한국사 내용 정리 (외부 파일 띄우기)
+--    function loadHistorySummary() {
+--        const frame = document.getElementById('mainFrame');
+--        document.getElementById('historyHub').style.display = 'none';
+--        frame.style.display = 'block';
+--        frame.src = "./history_interactive.html";
+--        document.getElementById('mainTitle').innerText = "한국사 내용 정리";
+-+    function saveNotes() {
+-+        const value = document.getElementById('notesInput').value;
+-+        localStorage.setItem('studymax-final-notes', value);
+-+        document.getElementById('saveMsg').innerText = '저장 완료! (브라우저에 보관됨)';
+-     }
+--
+--    // 2. 한국사 부록 (내부 박스 띄우기)
+--    function showAppendix() {
+--        document.getElementById('historyHub').style.display = 'none';
+--        document.getElementById('mainFrame').style.display = 'none';
+--        document.getElementById('appendixBox').style.display = 'flex';
+--        document.getElementById('mainTitle').innerText = "한국사 심화 부록";
+--    }
+--
+--    // 3. 매우 간단 요약 (부록 박스 안에 있는 버튼 클릭 시 외부 파일 띄우기)
+--    function loadSimpleSummaryFile() {
+--        const frame = document.getElementById('mainFrame');
+--        document.getElementById('appendixBox').style.display = 'none';
+--        frame.style.display = 'block';
+--        
+--        // ★ 질문자님이 말씀하신 파일명(history_apendix.html)을 정확히 반영했습니다! ★
+--        frame.src = "./history_apendix.html"; 
+--        
+--        document.getElementById('mainTitle').innerText = "한국사 매우 간단 요약";
+-+    function clearNotes() {
+-+        document.getElementById('notesInput').value = '';
+-+        localStorage.removeItem('studymax-final-notes');
+-+        document.getElementById('saveMsg').innerText = '필기를 비웠습니다.';
+-     }
+-+    window.addEventListener('DOMContentLoaded', () => {
+-+        const saved = localStorage.getItem('studymax-final-notes');
+-+        if (saved) document.getElementById('notesInput').value = saved;
+-+    });
+- </script>
+- </body>
+- </html>
+- 
+-EOF
+-)
++<!DOCTYPE html>
++<html lang="ko">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>STUDY MAX FINAL — 학습 포털</title>
++  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
++  <style>
++    :root {
++      --nav: #0f172a;
++      --bg: #f1f5f9;
++      --panel: #ffffff;
++      --line: #dbe3ef;
++      --text: #0f172a;
++      --sub: #64748b;
++      --primary: #2563eb;
++    }
++    * { box-sizing: border-box; margin: 0; padding: 0; }
++    body { font-family: 'Pretendard', sans-serif; height: 100vh; display: flex; background: var(--bg); color: var(--text); }
++
++    .sidebar { width: 230px; background: var(--nav); color: #cbd5e1; display: flex; flex-direction: column; }
++    .logo { padding: 20px 16px; text-align: center; font-weight: 800; color: #fff; border-bottom: 1px solid rgba(255,255,255,.1); }
++    .menu { padding: 10px; display: grid; gap: 6px; }
++    .menu button {
++      border: 0; border-radius: 8px; padding: 10px 12px; text-align: left; background: transparent; color: inherit; cursor: pointer;
++    }
++    .menu button.active { background: var(--primary); color: white; font-weight: 700; }
++    .home { margin-top: auto; padding: 10px; border-top: 1px solid rgba(255,255,255,.1); }
++    .home a { display: block; text-align: center; text-decoration: none; color: #e2e8f0; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; padding: 10px; }
++
++    .main { flex: 1; padding: 16px; display: grid; grid-template-rows: auto 1fr; gap: 12px; min-width: 0; }
++    .header { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
++    .header h1 { font-size: 1.2rem; }
++    .header p { color: var(--sub); margin-top: 4px; font-size: .92rem; }
++
++    .content { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
++    .panel { display: none; height: 100%; }
++    .panel.active { display: block; }
++
++    .dashboard { padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
++    .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
++    .kpi h3 { font-size: .86rem; color: var(--sub); margin-bottom: 8px; }
++    .kpi .v { font-size: 1.4rem; font-weight: 800; }
++    .memo { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
++    .memo h3 { font-size: .92rem; margin-bottom: 8px; }
++    .memo textarea { width: 100%; min-height: 170px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-family: inherit; resize: vertical; }
++
++    iframe { width: 100%; height: 100%; border: none; }
++    @media (max-width: 940px) { .dashboard { grid-template-columns: 1fr; } .sidebar { width: 190px; } }
++  </style>
++</head>
++<body>
++  <aside class="sidebar">
++    <div class="logo">STUDY MAX FINAL</div>
++    <nav class="menu">
++      <button class="active" onclick="showDashboard(this)">🏁 대시보드</button>
++      <button data-src="korean_hub.html" onclick="showSubject(this, '국어 학습')">📖 국어</button>
++      <button data-src="english_hub.html" onclick="showSubject(this, '영어 학습')">📝 영어</button>
++      <button data-src="science_hub.html" onclick="showSubject(this, '통합과학 학습')">🧪 통합과학</button>
++      <button data-src="society_hub.html" onclick="showSubject(this, '통합사회 학습')">🌍 통합사회</button>
++      <button data-src="mega_study.html" onclick="showSubject(this, '정보 학습')">💻 정보</button>
++    </nav>
++    <div class="home"><a href="./">홈으로</a></div>
++  </aside>
++
++  <main class="main">
++    <header class="header">
++      <h1 id="title">기말 학습 대시보드</h1>
++      <p id="desc">화면을 단순하게 정리해서 필요한 파트만 빠르게 볼 수 있게 구성했습니다.</p>
++    </header>
++
++    <section class="content">
++      <div id="dashPanel" class="panel active">
++        <div class="dashboard">
++          <article class="kpi"><h3>기말 D-DAY</h3><div class="v">D-21</div></article>
++          <article class="kpi"><h3>오늘 목표</h3><div class="v">3단원</div></article>
++          <article class="kpi"><h3>복습 완료율</h3><div class="v">68%</div></article>
++          <article class="memo"><h3>오늘 메모</h3><textarea placeholder="핵심만 간단히 기록하세요."></textarea></article>
++        </div>
++      </div>
++      <div id="framePanel" class="panel"><iframe id="frame" src="about:blank" title="학습 페이지"></iframe></div>
++    </section>
++  </main>
++
++  <script>
++    const title = document.getElementById('title');
++    const desc = document.getElementById('desc');
++    const dashPanel = document.getElementById('dashPanel');
++    const framePanel = document.getElementById('framePanel');
++    const frame = document.getElementById('frame');
++
++    function setActive(btn) {
++      document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
++      btn.classList.add('active');
++    }
++
++    function showDashboard(btn) {
++      setActive(btn);
++      dashPanel.classList.add('active');
++      framePanel.classList.remove('active');
++      title.textContent = '기말 학습 대시보드';
++      desc.textContent = '화면을 단순하게 정리해서 필요한 파트만 빠르게 볼 수 있게 구성했습니다.';
++    }
++
++    function showSubject(btn, heading) {
++      setActive(btn);
++      dashPanel.classList.remove('active');
++      framePanel.classList.add('active');
++      frame.src = btn.dataset.src;
++      title.textContent = heading;
++      desc.textContent = '선택한 과목에 집중할 수 있도록 중앙 화면만 사용합니다.';
++    }
++  </script>
++</body>
++</html>
+ 
+EOF
+)
+ main
+ main
