@@ -15,6 +15,14 @@ const desc = document.getElementById('desc');
 const dashPanel = document.getElementById('dashPanel');
 const framePanel = document.getElementById('framePanel');
 const frame = document.getElementById('frame');
+const ddayEl = document.getElementById('ddayValue');
+const goalInput = document.getElementById('goalInput');
+const goalSaveBtn = document.getElementById('goalSaveBtn');
+const goalValueEl = document.getElementById('goalValue');
+const goalMsgEl = document.getElementById('goalMsg');
+
+const FINAL_EXAM_DATE = '2026-06-29';
+const GOAL_STORAGE_KEY = 'studymax_personal_goal';
 
 function setActive(btn) {
   document.querySelectorAll('.menu button').forEach((b) => b.classList.remove('active'));
@@ -36,6 +44,41 @@ function showSubject(btn, heading) {
   frame.src = btn.dataset.src;
   title.textContent = heading;
   desc.textContent = '선택 과목만 집중해서 볼 수 있습니다.';
+}
+
+function renderDday() {
+  if (!ddayEl) return;
+  const today = new Date();
+  const exam = new Date(`${FINAL_EXAM_DATE}T00:00:00`);
+  const ms = exam.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
+  if (days > 0) ddayEl.textContent = `D-${days}`;
+  else if (days === 0) ddayEl.textContent = 'D-DAY';
+  else ddayEl.textContent = `D+${Math.abs(days)}`;
+}
+
+function loadGoal() {
+  if (!goalInput || !goalValueEl) return;
+  const saved = localStorage.getItem(GOAL_STORAGE_KEY);
+  if (saved && saved.trim()) {
+    goalValueEl.textContent = saved;
+    goalInput.value = saved;
+  }
+}
+
+function saveGoal() {
+  if (!goalInput || !goalValueEl) return;
+  const value = goalInput.value.trim();
+  if (!value) {
+    goalMsgEl.textContent = '목표를 입력해 주세요.';
+    return;
+  }
+  localStorage.setItem(GOAL_STORAGE_KEY, value);
+  goalValueEl.textContent = value;
+  goalMsgEl.textContent = '개인 목표가 저장되었습니다.';
+  setTimeout(() => {
+    if (goalMsgEl.textContent === '개인 목표가 저장되었습니다.') goalMsgEl.textContent = '';
+  }, 1800);
 }
 
 function initHandwriteCanvas() {
@@ -103,6 +146,14 @@ function initHandwriteCanvas() {
   window.addEventListener('resize', resizeCanvas);
 }
 
+renderDday();
+loadGoal();
+if (goalSaveBtn) goalSaveBtn.addEventListener('click', saveGoal);
+if (goalInput) {
+  goalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveGoal();
+  });
+}
 initHandwriteCanvas();
 
 window.showDashboard = showDashboard;

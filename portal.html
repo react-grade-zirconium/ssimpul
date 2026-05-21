@@ -30,9 +30,19 @@
     <section class="content box">
       <div id="dashPanel" class="panel active">
         <div class="dashboard-grid">
-          <article class="card box"><h3>기말 D-DAY</h3><div class="v">D-21</div></article>
-          <article class="card box"><h3>오늘 목표</h3><div class="v">3단원</div></article>
+          <article class="card box"><h3>기말 D-DAY (2026-06-29)</h3><div class="v" id="ddayValue">D-0</div></article>
+          <article class="card box"><h3>내 목표</h3><div class="v" id="goalValue">목표 설정 전</div></article>
           <article class="card box"><h3>복습 완료율</h3><div class="v">68%</div></article>
+
+          <article class="goal box">
+            <h3>개인 목표 설정</h3>
+            <div class="goal-form">
+              <input id="goalInput" type="text" placeholder="예: 수학 3단원 오답 2회독" />
+              <button type="button" id="goalSaveBtn">저장</button>
+            </div>
+            <p id="goalMsg" class="goal-msg"></p>
+          </article>
+
           <article class="memo box">
             <h3>오늘 메모</h3>
             <textarea placeholder="핵심만 간단히 기록하세요."></textarea>
