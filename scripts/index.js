@@ -8,16 +8,67 @@ const startBtn = document.getElementById('startStudyBtn');
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
+const DEVICE_ID_KEY = 'studymax_device_id';
+const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
+
 const VALID_CODES = {
-  'SIM001': '심규원',
-  'CHOI001': '최시원',
-  'STUDENT-A': '학생A',
-  'STUDENT-B': '학생B',
+  '10201': '학생 10201',
+  '10202': '학생 10202',
+  '10203': '학생 10203',
+  '10204': '학생 10204',
+  '10205': '학생 10205',
+  '10206': '학생 10206',
+  '10207': '학생 10207',
+  '10208': '학생 10208',
+  '10209': '학생 10209',
+  '10210': '학생 10210',
+  '10211': '학생 10211',
+  '10212': '학생 10212',
+  '10213': '학생 10213',
+  '10214': '학생 10214',
+  '10215': '학생 10215',
+  '10216': '학생 10216',
+  '10217': '학생 10217',
+  '10218': '학생 10218',
+  '10219': '학생 10219',
+  '10220': '학생 10220',
+  '10221': '학생 10221',
+  '10222': '학생 10222',
+  '10223': '학생 10223',
+  '10224': '학생 10224',
+  '10225': '학생 10225',
+  '10226': '학생 10226',
+  '10227': '학생 10227',
+  '10228': '학생 10228',
+  '10229': '학생 10229',
+  '10230': '학생 10230',
+  '10231': '학생 10231',
+  '10232': '학생 10232',
 };
 
 const FIRST_FULL = '심규원, 최시원의';
 const SECOND_FULL = '풀서비스 스터디';
 const FINAL_TEXT = '심풀 스터디';
+
+function getOrCreateDeviceId() {
+  const existing = localStorage.getItem(DEVICE_ID_KEY);
+  if (existing) return existing;
+  const created = `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(DEVICE_ID_KEY, created);
+  return created;
+}
+
+function getBindMap() {
+  try {
+    return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setBindMap(map) {
+  localStorage.setItem(CODE_BIND_MAP_KEY, JSON.stringify(map));
+}
 
 function typeTo(el, text, duration = 900) {
   el.classList.add('typing');
@@ -35,20 +86,35 @@ function removeServiceFromSecondLine() { line2.innerHTML = '<span class="left-ke
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
 
 function saveCode() {
-  const code = codeInput.value.trim().toUpperCase();
+  const code = codeInput.value.trim();
   if (!code || !VALID_CODES[code]) {
-    codeMsg.textContent = '유효한 코드를 입력해 주세요.';
+    codeMsg.textContent = '10201~10232 코드만 사용할 수 있습니다.';
     return false;
   }
+
+  const deviceId = getOrCreateDeviceId();
+  const bindMap = getBindMap();
+  const boundDevice = bindMap[code];
+
+  if (boundDevice && boundDevice !== deviceId) {
+    codeMsg.textContent = '이미 다른 기기에 등록된 코드입니다.';
+    return false;
+  }
+
+  bindMap[code] = deviceId;
+  setBindMap(bindMap);
   localStorage.setItem(ACCESS_CODE_KEY, code);
   localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
-  codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료`;
+  codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (이 기기 전용)`;
   return true;
 }
 
-function hasValidCode() {
+function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
-  return Boolean(code && VALID_CODES[code]);
+  if (!code || !VALID_CODES[code]) return false;
+  const deviceId = getOrCreateDeviceId();
+  const bindMap = getBindMap();
+  return bindMap[code] === deviceId;
 }
 
 function loadCode() {
@@ -67,12 +133,13 @@ setTimeout(() => { freeze(line2); }, 2100);
 setTimeout(() => { reduceFirstLineToShim(); removeServiceFromSecondLine(); }, 3600);
 setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-lines'); showFinalMergedLine(); }, 5200);
 
+getOrCreateDeviceId();
 loadCode();
 codeSaveBtn?.addEventListener('click', saveCode);
 codeInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveCode(); });
 startBtn?.addEventListener('click', (e) => {
-  if (hasValidCode()) return;
+  if (hasValidCodeForThisDevice()) return;
   e.preventDefault();
-  codeMsg.textContent = '코드가 없어서 처음 화면에 머무릅니다. 코드를 먼저 저장해 주세요.';
+  codeMsg.textContent = '이 기기에 등록된 유효 코드가 필요합니다.';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });

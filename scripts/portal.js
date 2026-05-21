@@ -11,16 +11,60 @@ removeUnexpectedBodyTextNodes();
 
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
-const VALID_CODES = { 'SIM001': '심규원', 'CHOI001': '최시원', 'STUDENT-A': '학생A', 'STUDENT-B': '학생B' };
+
+const DEVICE_ID_KEY = 'studymax_device_id';
+const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
+const VALID_CODES = {
+  '10201': '학생 10201',
+  '10202': '학생 10202',
+  '10203': '학생 10203',
+  '10204': '학생 10204',
+  '10205': '학생 10205',
+  '10206': '학생 10206',
+  '10207': '학생 10207',
+  '10208': '학생 10208',
+  '10209': '학생 10209',
+  '10210': '학생 10210',
+  '10211': '학생 10211',
+  '10212': '학생 10212',
+  '10213': '학생 10213',
+  '10214': '학생 10214',
+  '10215': '학생 10215',
+  '10216': '학생 10216',
+  '10217': '학생 10217',
+  '10218': '학생 10218',
+  '10219': '학생 10219',
+  '10220': '학생 10220',
+  '10221': '학생 10221',
+  '10222': '학생 10222',
+  '10223': '학생 10223',
+  '10224': '학생 10224',
+  '10225': '학생 10225',
+  '10226': '학생 10226',
+  '10227': '학생 10227',
+  '10228': '학생 10228',
+  '10229': '학생 10229',
+  '10230': '학생 10230',
+  '10231': '학생 10231',
+  '10232': '학생 10232',
+};
+
+function getBindMap() {
+  try { return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}'); }
+  catch { return {}; }
+}
 
 function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
-  if (!code || !VALID_CODES[code]) {
+  const deviceId = localStorage.getItem(DEVICE_ID_KEY);
+  const bindMap = getBindMap();
+  if (!code || !deviceId || !VALID_CODES[code] || bindMap[code] !== deviceId) {
     window.location.replace('./index.html');
   }
 }
 
 enforceAccessCode();
+
 const title = document.getElementById('title');
 const desc = document.getElementById('desc');
 const dashPanel = document.getElementById('dashPanel');
