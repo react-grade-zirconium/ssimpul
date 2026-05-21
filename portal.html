@@ -46,10 +46,6 @@
           <article class="memo box">
             <h3>오늘 메모</h3>
             <textarea placeholder="핵심만 간단히 기록하세요."></textarea>
-            <div class="handwrite-tools">
-              <button type="button" id="clearCanvasBtn">손글씨 지우기</button>
-            </div>
-            <canvas id="memoCanvas" aria-label="손글씨 메모 캔버스"></canvas>
           </article>
         </div>
       </div>
@@ -58,6 +54,17 @@
       </div>
     </section>
   </main>
+
+  <div id="inkToolbar" class="ink-toolbar box" role="toolbar" aria-label="손글씨 도구">
+    <button type="button" id="inkToggleBtn">✍️ 손글씨 모드</button>
+    <button type="button" id="inkPenBtn" class="active">펜</button>
+    <button type="button" id="inkEraserBtn">지우개</button>
+    <button type="button" id="inkClearBtn">전체 지우기</button>
+    <button type="button" id="inkSaveBtn">저장</button>
+    <span id="inkMsg" class="ink-msg"></span>
+  </div>
+  <canvas id="inkLayer" aria-label="전체 화면 손글씨 레이어"></canvas>
+
   <script src="./scripts/portal.js"></script>
 </body>
 </html>
