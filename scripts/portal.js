@@ -34,13 +34,15 @@ function saveGoal() { const v = goalInput.value.trim(); if (!v) { goalMsgEl.text
 function initToolbarDrag(toolbar) {
   const grip = document.getElementById('inkGrip');
   if (!grip) return;
+
   let dragging = false;
-  let startX = 0, startY = 0, left = 0, top = 0;
+  let pointerOffsetX = 0;
+  let pointerOffsetY = 0;
 
   const move = (e) => {
     if (!dragging) return;
-    const nx = left + (e.clientX - startX);
-    const ny = top + (e.clientY - startY);
+    const nx = e.clientX - pointerOffsetX;
+    const ny = e.clientY - pointerOffsetY;
     const maxX = window.innerWidth - toolbar.offsetWidth;
     const maxY = window.innerHeight - toolbar.offsetHeight;
     toolbar.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
@@ -48,32 +50,34 @@ function initToolbarDrag(toolbar) {
     e.preventDefault();
   };
 
-  const end = () => {
+  const end = (e) => {
+    if (!dragging) return;
     dragging = false;
     toolbar.classList.remove('dragging');
     window.removeEventListener('pointermove', move);
     window.removeEventListener('pointerup', end);
     window.removeEventListener('pointercancel', end);
+    try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
   };
 
   grip.addEventListener('pointerdown', (e) => {
     dragging = true;
     toolbar.classList.add('dragging');
     const rect = toolbar.getBoundingClientRect();
-    startX = e.clientX;
-    startY = e.clientY;
-    left = rect.left;
-    top = rect.top;
-    toolbar.style.left = `${left}px`;
-    toolbar.style.top = `${top}px`;
+    pointerOffsetX = e.clientX - rect.left;
+    pointerOffsetY = e.clientY - rect.top;
+    toolbar.style.left = `${rect.left}px`;
+    toolbar.style.top = `${rect.top}px`;
     toolbar.style.right = 'auto';
     toolbar.style.bottom = 'auto';
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
     window.addEventListener('pointermove', move, { passive: false });
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
     e.preventDefault();
   }, { passive: false });
 }
+
 
 function initGlobalInk() {
   const canvas = document.getElementById('inkLayer');
@@ -145,13 +149,16 @@ function initGlobalInk() {
 
     if (mode === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
+      ctx.globalAlpha = 1;
       ctx.lineWidth = Math.max(10, penSize * 3) * (window.devicePixelRatio || 1);
     } else if (mode === 'highlighter') {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = `${penColor}88`;
+      ctx.globalAlpha = 0.28;
+      ctx.strokeStyle = penColor;
       ctx.lineWidth = Math.max(8, penSize * 2.2) * (window.devicePixelRatio || 1);
     } else {
       ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
       ctx.strokeStyle = penColor;
       ctx.lineWidth = penSize * (window.devicePixelRatio || 1);
     }
