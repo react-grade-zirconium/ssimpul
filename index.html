@@ -17,8 +17,18 @@
       </div>
       <h2 id="finalLine" class="final-line"></h2>
       <p class="desc">복잡한 요소를 줄이고 필요한 파트만 담은 시작 화면입니다.</p>
+
+      <div class="code-box">
+        <label for="accessCodeInput">개인 학습 코드</label>
+        <div class="code-row">
+          <input id="accessCodeInput" type="text" placeholder="코드를 입력하세요" />
+          <button id="codeSaveBtn" type="button" class="btn sub">코드 저장</button>
+        </div>
+        <p id="codeMsg" class="code-msg"></p>
+      </div>
+
       <div class="actions">
-        <a class="btn main" href="./portal.html">학습 시작</a>
+        <a id="startStudyBtn" class="btn main" href="./portal.html">학습 시작</a>
         <a class="btn sub" href="./README.md">README</a>
       </div>
     </section>

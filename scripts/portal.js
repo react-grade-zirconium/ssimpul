@@ -9,6 +9,18 @@ function removeUnexpectedBodyTextNodes() {
 }
 removeUnexpectedBodyTextNodes();
 
+
+const ACCESS_CODE_KEY = 'studymax_access_code';
+const VALID_CODES = { 'SIM001': '심규원', 'CHOI001': '최시원', 'STUDENT-A': '학생A', 'STUDENT-B': '학생B' };
+
+function enforceAccessCode() {
+  const code = localStorage.getItem(ACCESS_CODE_KEY);
+  if (!code || !VALID_CODES[code]) {
+    window.location.replace('./index.html');
+  }
+}
+
+enforceAccessCode();
 const title = document.getElementById('title');
 const desc = document.getElementById('desc');
 const dashPanel = document.getElementById('dashPanel');
