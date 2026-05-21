@@ -1,7 +1,7 @@
  codex/add-jekyll-theme-0ci3ys
-title: "STUDY MAX FINAL"
-description: "기말고사 학습 포털"
-lang: "ko-KR"
+title: STUDY MAX FINAL
+description: 기말고사 학습 포털
+lang: ko-KR
 theme: minima
 plugins:
   - jekyll-feed
@@ -32,3 +32,4 @@ EOF
 )
  main
  main
+
