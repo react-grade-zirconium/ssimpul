@@ -1,2 +1,2 @@
 # ssimpul
-hospital
+hospital.
