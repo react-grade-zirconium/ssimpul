@@ -1,3 +1,27 @@
+ codex/add-jekyll-theme-5asvpn
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STUDY MAX FINAL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles/index.css" />
+</head>
+<body>
+  <section class="hero">
+    <div class="line-wrap">
+      <h1 id="line1" class="line"></h1>
+      <h2 id="line2" class="line"></h2>
+    </div>
+    <p class="desc">필요한 것만 남긴 시작 화면입니다. 아래 버튼으로 바로 학습을 시작하세요.</p>
+    <div class="actions"><a class="btn main" href="./portal.html">학습 시작</a><a class="btn sub" href="./README.md">README</a></div>
+  </section>
+<script src="./scripts/index.js"></script>
+
+</body>
+</html>
+
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/index.html b/index.html
 index ce8ddfad696a577ad90231c7c01f58a147127235..ed7aca2e4b09e1b545444df19c37a9461227908e 100644
@@ -309,3 +333,4 @@ index ce8ddfad696a577ad90231c7c01f58a147127235..ed7aca2e4b09e1b545444df19c37a946
  
 EOF
 )
+ main

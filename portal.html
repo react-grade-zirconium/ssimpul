@@ -1,3 +1,44 @@
+ codex/add-jekyll-theme-5asvpn
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STUDY MAX FINAL — 학습 포털</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles/portal.css" />
+
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">STUDY MAX FINAL</div>
+    <nav class="menu">
+      <button class="active" onclick="showDashboard(this)">🏁 대시보드</button>
+      <button data-src="korean_hub.html" onclick="showSubject(this,'국어 학습')">📖 국어</button>
+      <button data-src="english_hub.html" onclick="showSubject(this,'영어 학습')">📝 영어</button>
+      <button data-src="science_hub.html" onclick="showSubject(this,'통합과학 학습')">🧪 통합과학</button>
+      <button data-src="society_hub.html" onclick="showSubject(this,'통합사회 학습')">🌍 통합사회</button>
+      <button data-src="mega_study.html" onclick="showSubject(this,'정보 학습')">💻 정보</button>
+    </nav>
+    <div class="home"><a href="./">홈으로</a></div>
+  </aside>
+  <main class="main">
+    <header class="header"><h1 id="title">기말 학습 대시보드</h1><p id="desc">요소를 최소화한 깔끔한 화면입니다.</p></header>
+    <section class="content">
+      <div id="dashPanel" class="panel active"><div class="dashboard">
+        <article class="kpi"><h3>기말 D-DAY</h3><div class="v">D-21</div></article>
+        <article class="kpi"><h3>오늘 목표</h3><div class="v">3단원</div></article>
+        <article class="kpi"><h3>복습 완료율</h3><div class="v">68%</div></article>
+        <article class="memo"><h3>오늘 메모</h3><textarea placeholder="핵심만 간단히 기록하세요."></textarea></article>
+      </div></div>
+      <div id="framePanel" class="panel"><iframe id="frame" src="about:blank" title="학습 페이지"></iframe></div>
+    </section>
+  </main>
+<script src="./scripts/portal.js"></script>
+
+</body>
+</html>
+
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/portal.html b/portal.html
 index 9ab93d51500e1f29685779c01a4708acb36a79c1..8f2ade29d37d60e4b6b02a5ce986ddaf11164b61 100644
@@ -503,3 +544,4 @@ index 9ab93d51500e1f29685779c01a4708acb36a79c1..8f2ade29d37d60e4b6b02a5ce986ddaf
  
 EOF
 )
+ main
