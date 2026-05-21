@@ -22,7 +22,7 @@ const goalMsgEl = document.getElementById('goalMsg');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
-const INK_STORAGE_KEY = 'studymax_ink_snapshot_v1';
+const INK_STORAGE_KEY = 'studymax_ink_snapshot_v2';
 
 function setActive(btn) { document.querySelectorAll('.menu button').forEach((b) => b.classList.remove('active')); btn.classList.add('active'); }
 function showDashboard(btn) { setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active'); title.textContent = '기말 학습 대시보드'; desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.'; }
@@ -37,6 +37,25 @@ function initToolbarDrag(toolbar) {
   let dragging = false;
   let startX = 0, startY = 0, left = 0, top = 0;
 
+  const move = (e) => {
+    if (!dragging) return;
+    const nx = left + (e.clientX - startX);
+    const ny = top + (e.clientY - startY);
+    const maxX = window.innerWidth - toolbar.offsetWidth;
+    const maxY = window.innerHeight - toolbar.offsetHeight;
+    toolbar.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
+    toolbar.style.top = `${Math.max(0, Math.min(ny, maxY))}px`;
+    e.preventDefault();
+  };
+
+  const end = () => {
+    dragging = false;
+    toolbar.classList.remove('dragging');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+  };
+
   grip.addEventListener('pointerdown', (e) => {
     dragging = true;
     toolbar.classList.add('dragging');
@@ -49,29 +68,11 @@ function initToolbarDrag(toolbar) {
     toolbar.style.top = `${top}px`;
     toolbar.style.right = 'auto';
     toolbar.style.bottom = 'auto';
-    grip.setPointerCapture(e.pointerId);
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
     e.preventDefault();
-  });
-
-  grip.addEventListener('pointermove', (e) => {
-    if (!dragging) return;
-    const nx = left + (e.clientX - startX);
-    const ny = top + (e.clientY - startY);
-    const maxX = window.innerWidth - toolbar.offsetWidth;
-    const maxY = window.innerHeight - toolbar.offsetHeight;
-    toolbar.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
-    toolbar.style.top = `${Math.max(0, Math.min(ny, maxY))}px`;
-    e.preventDefault();
-  });
-
-  const end = (e) => {
-    if (!dragging) return;
-    dragging = false;
-    toolbar.classList.remove('dragging');
-    try { grip.releasePointerCapture(e.pointerId); } catch {}
-  };
-  grip.addEventListener('pointerup', end);
-  grip.addEventListener('pointercancel', end);
+  }, { passive: false });
 }
 
 function initGlobalInk() {
@@ -80,32 +81,43 @@ function initGlobalInk() {
   const toggleBtn = document.getElementById('inkToggleBtn');
   const penBtn = document.getElementById('inkPenBtn');
   const eraserBtn = document.getElementById('inkEraserBtn');
+  const highlighterBtn = document.getElementById('inkHighlighterBtn');
   const clearBtn = document.getElementById('inkClearBtn');
   const saveBtn = document.getElementById('inkSaveBtn');
+  const sizeInput = document.getElementById('inkSizeRange');
+  const colorInput = document.getElementById('inkColorInput');
   const msg = document.getElementById('inkMsg');
-  if (!canvas || !toolbar || !toggleBtn || !penBtn || !eraserBtn || !clearBtn || !saveBtn || !msg) return;
+  if (!canvas || !toolbar || !toggleBtn || !penBtn || !eraserBtn || !highlighterBtn || !clearBtn || !saveBtn || !sizeInput || !colorInput || !msg) return;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
-  let ratio = 1;
   let drawing = false;
   let mode = 'pen';
+  let penSize = Number(sizeInput.value || 3);
+  let penColor = colorInput.value || '#0f172a';
 
   initToolbarDrag(toolbar);
 
   function setMsg(text) { msg.textContent = text; if (!text) return; setTimeout(() => { if (msg.textContent === text) msg.textContent = ''; }, 1800); }
-  function setTool(next) { mode = next; penBtn.classList.toggle('active', next === 'pen'); eraserBtn.classList.toggle('active', next === 'eraser'); }
+  function setTool(next) {
+    mode = next;
+    penBtn.classList.toggle('active', next === 'pen');
+    eraserBtn.classList.toggle('active', next === 'eraser');
+    highlighterBtn.classList.toggle('active', next === 'highlighter');
+  }
 
   function toCanvasXY(e) {
     const rect = canvas.getBoundingClientRect();
-    return { x: (e.clientX - rect.left), y: (e.clientY - rect.top) };
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
   }
 
   function clearInk() {
-    ctx.save();
-    ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.restore();
   }
 
   function resizeCanvas() {
@@ -114,14 +126,13 @@ function initGlobalInk() {
     prev.height = canvas.height || 1;
     prev.getContext('2d').drawImage(canvas, 0, 0);
 
-    ratio = window.devicePixelRatio || 1;
+    const ratio = window.devicePixelRatio || 1;
     canvas.width = Math.floor(window.innerWidth * ratio);
     canvas.height = Math.floor(window.innerHeight * ratio);
 
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.drawImage(prev, 0, 0, canvas.width / ratio, canvas.height / ratio);
+    ctx.drawImage(prev, 0, 0, canvas.width, canvas.height);
   }
 
   function beginStroke(e) {
@@ -131,13 +142,18 @@ function initGlobalInk() {
     const p = toCanvasXY(e);
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
+
     if (mode === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = 18;
+      ctx.lineWidth = Math.max(10, penSize * 3) * (window.devicePixelRatio || 1);
+    } else if (mode === 'highlighter') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = `${penColor}88`;
+      ctx.lineWidth = Math.max(8, penSize * 2.2) * (window.devicePixelRatio || 1);
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = penColor;
+      ctx.lineWidth = penSize * (window.devicePixelRatio || 1);
     }
     e.preventDefault();
   }
@@ -153,8 +169,12 @@ function initGlobalInk() {
   function endStroke() { if (!drawing) return; drawing = false; ctx.closePath(); }
 
   function saveInk() {
-    try { localStorage.setItem(INK_STORAGE_KEY, canvas.toDataURL('image/png')); setMsg('손글씨 저장 완료'); }
-    catch (_) { setMsg('저장 실패'); }
+    try {
+      localStorage.setItem(INK_STORAGE_KEY, canvas.toDataURL('image/png'));
+      setMsg('손글씨 저장 완료');
+    } catch (_) {
+      setMsg('저장 실패');
+    }
   }
 
   function loadInk() {
@@ -163,7 +183,7 @@ function initGlobalInk() {
     const img = new Image();
     img.onload = () => {
       clearInk();
-      ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     };
     img.src = data;
   }
@@ -177,6 +197,9 @@ function initGlobalInk() {
   });
   penBtn.addEventListener('click', () => setTool('pen'));
   eraserBtn.addEventListener('click', () => setTool('eraser'));
+  highlighterBtn.addEventListener('click', () => setTool('highlighter'));
+  sizeInput.addEventListener('input', () => { penSize = Number(sizeInput.value); });
+  colorInput.addEventListener('input', () => { penColor = colorInput.value; });
   clearBtn.addEventListener('click', () => { clearInk(); setMsg('전체 지움'); });
   saveBtn.addEventListener('click', saveInk);
 
