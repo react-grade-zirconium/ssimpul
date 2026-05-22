@@ -9,6 +9,7 @@ const startBtn = document.getElementById('startStudyBtn');
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
 const DEVICE_ID_KEY = 'studymax_device_id';
+const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
 const ACCESS_BIND_API = '/api/access-bind';
 
 const VALID_CODES = {
@@ -80,6 +81,26 @@ async function bindCodeToDevice(code, deviceId, forceReset = false) {
   return payload;
 }
 
+function getLocalBindMap() {
+  try { return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}'); }
+  catch (_) { return {}; }
+}
+
+function setLocalBindMap(map) {
+  localStorage.setItem(CODE_BIND_MAP_KEY, JSON.stringify(map));
+}
+
+function bindCodeToDeviceLocal(code, deviceId, forceReset = false) {
+  const map = getLocalBindMap();
+  const boundDevice = map[code];
+  if (boundDevice && boundDevice !== deviceId && !forceReset) {
+    return { ok: false, reason: 'ALREADY_BOUND_OTHER_DEVICE', message: '이미 다른 기기에 등록된 코드입니다.' };
+  }
+  map[code] = deviceId;
+  setLocalBindMap(map);
+  return { ok: true, valid: true };
+}
+
 async function verifyCodeOnDevice(code, deviceId) {
   const query = new URLSearchParams({ code, deviceId }).toString();
   const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
@@ -129,8 +150,23 @@ async function saveCode() {
     codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (기기 초기화 반영)`;
     return true;
   } catch (_) {
-    codeMsg.textContent = '서버 확인 실패: 잠시 후 다시 시도해 주세요.';
-    return false;
+    let result = bindCodeToDeviceLocal(code, deviceId, false);
+    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
+      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
+      if (!confirmed) {
+        codeMsg.textContent = '초기화가 취소되었습니다.';
+        return false;
+      }
+      result = bindCodeToDeviceLocal(code, deviceId, true);
+    }
+    if (!result?.ok) {
+      codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
+      return false;
+    }
+    localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
+    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (로컬 초기화 반영)`;
+    return true;
   }
 }
 
@@ -142,7 +178,8 @@ async function hasValidCodeForThisDevice() {
     const result = await verifyCodeOnDevice(code, deviceId);
     return Boolean(result?.ok && result?.valid);
   } catch (_) {
-    return false;
+    const bindMap = getLocalBindMap();
+    return bindMap[code] === deviceId;
   }
 }
 
