@@ -58,14 +58,26 @@ function getOrCreateDeviceId() {
   return created;
 }
 
-async function bindCodeToDevice(code, deviceId) {
+async function bindCodeToDevice(code, deviceId, forceReset = false) {
   const res = await fetch(ACCESS_BIND_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, deviceId }),
+    body: JSON.stringify({ code, deviceId, forceReset }),
   });
-  if (!res.ok) throw new Error('bind_failed');
-  return res.json();
+  let payload = null;
+  try {
+    payload = await res.json();
+  } catch (_) {
+    payload = null;
+  }
+  if (!res.ok) {
+    return {
+      ok: false,
+      reason: payload?.reason || 'BIND_FAILED',
+      message: payload?.message || '코드 등록에 실패했습니다.',
+    };
+  }
+  return payload;
 }
 
 async function verifyCodeOnDevice(code, deviceId) {
@@ -99,14 +111,22 @@ async function saveCode() {
 
   const deviceId = getOrCreateDeviceId();
   try {
-    const result = await bindCodeToDevice(code, deviceId);
+    let result = await bindCodeToDevice(code, deviceId, false);
+    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
+      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
+      if (!confirmed) {
+        codeMsg.textContent = '초기화가 취소되었습니다.';
+        return false;
+      }
+      result = await bindCodeToDevice(code, deviceId, true);
+    }
     if (!result?.ok) {
       codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
       return false;
     }
     localStorage.setItem(ACCESS_CODE_KEY, code);
     localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
-    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (1인 1기기 고정)`;
+    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (기기 초기화 반영)`;
     return true;
   } catch (_) {
     codeMsg.textContent = '서버 확인 실패: 잠시 후 다시 시도해 주세요.';
