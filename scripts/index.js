@@ -87,6 +87,24 @@ async function verifyCodeOnDevice(code, deviceId) {
   return res.json();
 }
 
+function bindCodeToDeviceLocal(code, deviceId, forceReset = false) {
+  const map = getLocalBindMap();
+  const boundDevice = map[code];
+  if (boundDevice && boundDevice !== deviceId && !forceReset) {
+    return { ok: false, reason: 'ALREADY_BOUND_OTHER_DEVICE', message: '이미 다른 기기에 등록된 코드입니다.' };
+  }
+  map[code] = deviceId;
+  setLocalBindMap(map);
+  return { ok: true, valid: true };
+}
+
+async function verifyCodeOnDevice(code, deviceId) {
+  const query = new URLSearchParams({ code, deviceId }).toString();
+  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
+  if (!res.ok) throw new Error('verify_failed');
+  return res.json();
+}
+
 function typeTo(el, text, duration = 900) {
   el.classList.add('typing');
   el.textContent = text;
