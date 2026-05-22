@@ -13,7 +13,6 @@ removeUnexpectedBodyTextNodes();
 const ACCESS_CODE_KEY = 'studymax_access_code';
 
 const DEVICE_ID_KEY = 'studymax_device_id';
-const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
 const ACCESS_BIND_API = '/api/access-bind';
 const VALID_CODES = {
   '26-10201': '학생 26-10201',
@@ -57,11 +56,6 @@ async function verifyCodeOnDevice(code, deviceId) {
   return res.json();
 }
 
-function getLocalBindMap() {
-  try { return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}'); }
-  catch (_) { return {}; }
-}
-
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   const deviceId = localStorage.getItem(DEVICE_ID_KEY);
@@ -74,8 +68,6 @@ async function enforceAccessCode() {
     if (result?.ok && result?.valid) return;
     window.location.replace('./index.html');
   } catch (_) {
-    const bindMap = getLocalBindMap();
-    if (bindMap[code] === deviceId) return;
     window.location.replace('./index.html');
   }
 }
