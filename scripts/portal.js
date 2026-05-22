@@ -14,6 +14,7 @@ const ACCESS_CODE_KEY = 'studymax_access_code';
 
 const DEVICE_ID_KEY = 'studymax_device_id';
 const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
+const ACCESS_BIND_API = '/api/access-bind';
 const VALID_CODES = {
   '10201': '학생 10201',
   '10202': '학생 10202',
@@ -49,16 +50,32 @@ const VALID_CODES = {
   '10232': '학생 10232',
 };
 
-function getBindMap() {
-  try { return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}'); }
-  catch { return {}; }
+async function verifyCodeOnDevice(code, deviceId) {
+  const query = new URLSearchParams({ code, deviceId }).toString();
+  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
+  if (!res.ok) throw new Error('verify_failed');
+  return res.json();
 }
 
-function enforceAccessCode() {
+function getLocalBindMap() {
+  try { return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}'); }
+  catch (_) { return {}; }
+}
+
+async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   const deviceId = localStorage.getItem(DEVICE_ID_KEY);
-  const bindMap = getBindMap();
-  if (!code || !deviceId || !VALID_CODES[code] || bindMap[code] !== deviceId) {
+  if (!code || !deviceId || !VALID_CODES[code]) {
+    window.location.replace('./index.html');
+    return;
+  }
+  try {
+    const result = await verifyCodeOnDevice(code, deviceId);
+    if (result?.ok && result?.valid) return;
+    window.location.replace('./index.html');
+  } catch (_) {
+    const bindMap = getLocalBindMap();
+    if (bindMap[code] === deviceId) return;
     window.location.replace('./index.html');
   }
 }
