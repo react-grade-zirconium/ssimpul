@@ -131,6 +131,26 @@ async function saveCode() {
   }
 
   const deviceId = getOrCreateDeviceId();
+  const saveWithLocalFallback = () => {
+    let localResult = bindCodeToDeviceLocal(code, deviceId, false);
+    if (!localResult?.ok && localResult?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
+      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
+      if (!confirmed) {
+        codeMsg.textContent = '초기화가 취소되었습니다.';
+        return false;
+      }
+      localResult = bindCodeToDeviceLocal(code, deviceId, true);
+    }
+    if (!localResult?.ok) {
+      codeMsg.textContent = localResult?.message || '코드 등록에 실패했습니다.';
+      return false;
+    }
+    localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
+    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (로컬 초기화 반영)`;
+    return true;
+  };
+
   try {
     let result = await bindCodeToDevice(code, deviceId, false);
     if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
@@ -141,6 +161,9 @@ async function saveCode() {
       }
       result = await bindCodeToDevice(code, deviceId, true);
     }
+    if (!result?.ok && result?.reason === 'BIND_FAILED') {
+      return saveWithLocalFallback();
+    }
     if (!result?.ok) {
       codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
       return false;
@@ -150,23 +173,7 @@ async function saveCode() {
     codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (기기 초기화 반영)`;
     return true;
   } catch (_) {
-    let result = bindCodeToDeviceLocal(code, deviceId, false);
-    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
-      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
-      if (!confirmed) {
-        codeMsg.textContent = '초기화가 취소되었습니다.';
-        return false;
-      }
-      result = bindCodeToDeviceLocal(code, deviceId, true);
-    }
-    if (!result?.ok) {
-      codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
-      return false;
-    }
-    localStorage.setItem(ACCESS_CODE_KEY, code);
-    localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
-    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (로컬 초기화 반영)`;
-    return true;
+    return saveWithLocalFallback();
   }
 }
 
