@@ -9,7 +9,7 @@ const startBtn = document.getElementById('startStudyBtn');
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
 const DEVICE_ID_KEY = 'studymax_device_id';
-const CODE_BIND_MAP_KEY = 'studymax_code_bind_map_v1';
+const ACCESS_BIND_API = '/api/access-bind';
 
 const VALID_CODES = {
   '10201': '학생 10201',
@@ -58,16 +58,33 @@ function getOrCreateDeviceId() {
   return created;
 }
 
-function getBindMap() {
+async function bindCodeToDevice(code, deviceId, forceReset = false) {
+  const res = await fetch(ACCESS_BIND_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, deviceId, forceReset }),
+  });
+  let payload = null;
   try {
-    return JSON.parse(localStorage.getItem(CODE_BIND_MAP_KEY) || '{}');
-  } catch {
-    return {};
+    payload = await res.json();
+  } catch (_) {
+    payload = null;
   }
+  if (!res.ok) {
+    return {
+      ok: false,
+      reason: payload?.reason || 'BIND_FAILED',
+      message: payload?.message || '코드 등록에 실패했습니다.',
+    };
+  }
+  return payload;
 }
 
-function setBindMap(map) {
-  localStorage.setItem(CODE_BIND_MAP_KEY, JSON.stringify(map));
+async function verifyCodeOnDevice(code, deviceId) {
+  const query = new URLSearchParams({ code, deviceId }).toString();
+  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
+  if (!res.ok) throw new Error('verify_failed');
+  return res.json();
 }
 
 function typeTo(el, text, duration = 900) {
@@ -85,7 +102,7 @@ function reduceFirstLineToShim() { line1.innerHTML = '<span class="shim-core">�
 function removeServiceFromSecondLine() { line2.innerHTML = '<span class="left-keep">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="right-keep"> 스터디</span>'; requestAnimationFrame(() => document.getElementById('fadeService')?.classList.add('hide')); }
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
 
-function saveCode() {
+async function saveCode() {
   const code = codeInput.value.trim();
   if (!code || !VALID_CODES[code]) {
     codeMsg.textContent = '10201~10232 코드만 사용할 수 있습니다.';
@@ -93,28 +110,40 @@ function saveCode() {
   }
 
   const deviceId = getOrCreateDeviceId();
-  const bindMap = getBindMap();
-  const boundDevice = bindMap[code];
-
-  if (boundDevice && boundDevice !== deviceId) {
-    codeMsg.textContent = '이미 다른 기기에 등록된 코드입니다.';
+  try {
+    let result = await bindCodeToDevice(code, deviceId, false);
+    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
+      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
+      if (!confirmed) {
+        codeMsg.textContent = '초기화가 취소되었습니다.';
+        return false;
+      }
+      result = await bindCodeToDevice(code, deviceId, true);
+    }
+    if (!result?.ok) {
+      codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
+      return false;
+    }
+    localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
+    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (기기 초기화 반영)`;
+    return true;
+  } catch (_) {
+    codeMsg.textContent = '서버 확인 실패: 잠시 후 다시 시도해 주세요.';
     return false;
   }
-
-  bindMap[code] = deviceId;
-  setBindMap(bindMap);
-  localStorage.setItem(ACCESS_CODE_KEY, code);
-  localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
-  codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (이 기기 전용)`;
-  return true;
 }
 
-function hasValidCodeForThisDevice() {
+async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (!code || !VALID_CODES[code]) return false;
   const deviceId = getOrCreateDeviceId();
-  const bindMap = getBindMap();
-  return bindMap[code] === deviceId;
+  try {
+    const result = await verifyCodeOnDevice(code, deviceId);
+    return Boolean(result?.ok && result?.valid);
+  } catch (_) {
+    return false;
+  }
 }
 
 function loadCode() {
@@ -135,11 +164,11 @@ setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-line
 
 getOrCreateDeviceId();
 loadCode();
-codeSaveBtn?.addEventListener('click', saveCode);
+codeSaveBtn?.addEventListener('click', () => { saveCode(); });
 codeInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveCode(); });
-startBtn?.addEventListener('click', (e) => {
-  if (hasValidCodeForThisDevice()) return;
+startBtn?.addEventListener('click', async (e) => {
+  if (await hasValidCodeForThisDevice()) return;
   e.preventDefault();
-  codeMsg.textContent = '이 기기에 등록된 유효 코드가 필요합니다.';
+  codeMsg.textContent = '이 기기에 1:1로 등록된 유효 코드가 필요합니다.';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
