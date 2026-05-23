@@ -1,10 +1,18 @@
 import { auth } from './firebase.js';
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
 const line1 = document.getElementById('line1');
 const line2 = document.getElementById('line2');
 const finalLine = document.getElementById('finalLine');
-const loginBtn = document.getElementById('loginBtn');
+const emailLoginBtn = document.getElementById('emailLoginBtn');
+const emailSignupBtn = document.getElementById('emailSignupBtn');
+const anonLoginBtn = document.getElementById('anonLoginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const authMsg = document.getElementById('authMsg');
 const startBtn = document.getElementById('startStudyBtn');
@@ -37,19 +45,56 @@ setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-line
 
 function setAuthMessage(user) {
   if (!authMsg) return;
-  authMsg.textContent = user ? `${user.email || user.displayName || '사용자'} 로그인됨` : '로그인이 필요합니다.';
+  if (!user) {
+    authMsg.textContent = '로그인이 필요합니다. (이메일/익명 로그인 지원)';
+    return;
+  }
+  if (user.isAnonymous) {
+    authMsg.textContent = '익명 로그인 상태입니다. 비밀번호 분실 시 계정 복구가 매우 어렵습니다.';
+    return;
+  }
+  authMsg.textContent = `${user.email || '사용자'} 로그인됨`;
+}
+
+async function requestEmailCredentials(mode) {
+  const email = window.prompt(`${mode} 이메일을 입력해 주세요.`)?.trim();
+  if (!email) return null;
+  const password = window.prompt(`${mode} 비밀번호를 입력해 주세요.`)?.trim();
+  if (!password) return null;
+  return { email, password };
 }
 
 onAuthStateChanged(auth, (user) => {
   setAuthMessage(user);
 });
 
-loginBtn?.addEventListener('click', async () => {
+emailSignupBtn?.addEventListener('click', async () => {
+  const creds = await requestEmailCredentials('회원가입');
+  if (!creds) return;
   try {
-    await signInWithPopup(auth, new GoogleAuthProvider());
-  } catch (_) {
-    setAuthMessage(null);
-    if (authMsg) authMsg.textContent = '로그인 실패. Firebase 설정을 확인해 주세요.';
+    await createUserWithEmailAndPassword(auth, creds.email, creds.password);
+  } catch (e) {
+    if (authMsg) authMsg.textContent = `회원가입 실패: ${e?.code || '설정 확인 필요'}`;
+  }
+});
+
+emailLoginBtn?.addEventListener('click', async () => {
+  const creds = await requestEmailCredentials('로그인');
+  if (!creds) return;
+  try {
+    await signInWithEmailAndPassword(auth, creds.email, creds.password);
+  } catch (e) {
+    if (authMsg) authMsg.textContent = `로그인 실패: ${e?.code || '설정 확인 필요'}`;
+  }
+});
+
+anonLoginBtn?.addEventListener('click', async () => {
+  const confirmed = window.confirm('익명 로그인은 기기 변경/삭제 시 계정 복구가 어렵습니다. 계속할까요?');
+  if (!confirmed) return;
+  try {
+    await signInAnonymously(auth);
+  } catch (e) {
+    if (authMsg) authMsg.textContent = `익명 로그인 실패: ${e?.code || '설정 확인 필요'}`;
   }
 });
 
