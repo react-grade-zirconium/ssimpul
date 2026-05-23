@@ -112,7 +112,7 @@ async function saveCode() {
     return true;
   }
   if (!code || !VALID_CODES[code]) {
-    codeMsg.textContent = '26-10201~26-10232 또는 마스터코드(simpul)만 사용할 수 있습니다.';
+    codeMsg.textContent = '26-10201~26-10232 또는 마스터코드만 사용할 수 있습니다.';
     return false;
   }
 
