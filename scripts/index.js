@@ -10,6 +10,7 @@ const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
+const MASTER_CODE = 'simpul';
 
 const VALID_CODES = {
   '26-10201': '학생 26-10201',
@@ -87,24 +88,6 @@ async function verifyCodeOnDevice(code, deviceId) {
   return res.json();
 }
 
-function bindCodeToDeviceLocal(code, deviceId, forceReset = false) {
-  const map = getLocalBindMap();
-  const boundDevice = map[code];
-  if (boundDevice && boundDevice !== deviceId && !forceReset) {
-    return { ok: false, reason: 'ALREADY_BOUND_OTHER_DEVICE', message: '이미 다른 기기에 등록된 코드입니다.' };
-  }
-  map[code] = deviceId;
-  setLocalBindMap(map);
-  return { ok: true, valid: true };
-}
-
-async function verifyCodeOnDevice(code, deviceId) {
-  const query = new URLSearchParams({ code, deviceId }).toString();
-  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
-  if (!res.ok) throw new Error('verify_failed');
-  return res.json();
-}
-
 function typeTo(el, text, duration = 900) {
   el.classList.add('typing');
   el.textContent = text;
@@ -122,8 +105,14 @@ function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.c
 
 async function saveCode() {
   const code = codeInput.value.trim();
+  if (code === MASTER_CODE) {
+    localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_USER_KEY, '마스터 코드');
+    codeMsg.textContent = '마스터 코드 저장 완료';
+    return true;
+  }
   if (!code || !VALID_CODES[code]) {
-    codeMsg.textContent = '26-10201~26-10232 코드만 사용할 수 있습니다.';
+    codeMsg.textContent = '26-10201~26-10232 또는 마스터코드만 사용할 수 있습니다.';
     return false;
   }
 
@@ -154,6 +143,7 @@ async function saveCode() {
 
 async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
+  if (code === MASTER_CODE) return true;
   if (!code || !VALID_CODES[code]) return false;
   const deviceId = getOrCreateDeviceId();
   try {
@@ -166,6 +156,11 @@ async function hasValidCodeForThisDevice() {
 
 function loadCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
+  if (code === MASTER_CODE) {
+    codeInput.value = code;
+    codeMsg.textContent = '마스터 코드가 등록되어 있습니다.';
+    return;
+  }
   if (code && VALID_CODES[code]) {
     codeInput.value = code;
     codeMsg.textContent = `${VALID_CODES[code]} 코드가 등록되어 있습니다.`;

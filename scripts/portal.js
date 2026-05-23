@@ -14,6 +14,7 @@ const ACCESS_CODE_KEY = 'studymax_access_code';
 
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
+const MASTER_CODE = 'simpul';
 const VALID_CODES = {
   '26-10201': '학생 26-10201',
   '26-10202': '학생 26-10202',
@@ -59,6 +60,7 @@ async function verifyCodeOnDevice(code, deviceId) {
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   const deviceId = localStorage.getItem(DEVICE_ID_KEY);
+  if (code === MASTER_CODE) return;
   if (!code || !deviceId || !VALID_CODES[code]) {
     window.location.replace('./index.html');
     return;
