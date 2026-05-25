@@ -74,6 +74,90 @@ const goalMsgEl = document.getElementById('goalMsg');
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
 const INK_STORAGE_KEY = 'studymax_ink_snapshot_v2';
+const PROFILE_NAME_KEY = 'studymax_profile_name';
+const PROFILE_CLASS_KEY = 'studymax_profile_class';
+const PROFILE_NUMBER_KEY = 'studymax_profile_number';
+const PROFILE_PHOTO_KEY = 'studymax_profile_photo';
+
+function getClassNumberFromAccessCode() {
+  const code = localStorage.getItem(ACCESS_CODE_KEY) || '';
+  const m = code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return null;
+  return { classNo: Number(m[1]), numberNo: Number(m[2]) };
+}
+
+function updateProfileHeader() {
+  const nameEl = document.getElementById('profileNameLabel');
+  const classEl = document.getElementById('profileClassLabel');
+  const avatarEl = document.getElementById('profileAvatar');
+  const fallbackEl = document.getElementById('profileAvatarFallback');
+  const name = localStorage.getItem(PROFILE_NAME_KEY) || '이름 미설정';
+  const classNo = localStorage.getItem(PROFILE_CLASS_KEY);
+  const numberNo = localStorage.getItem(PROFILE_NUMBER_KEY);
+  const photoData = localStorage.getItem(PROFILE_PHOTO_KEY);
+  if (nameEl) nameEl.textContent = name;
+  if (classEl) classEl.textContent = classNo && numberNo ? `${classNo}반 ${numberNo}번` : '반/번호 미설정';
+  if (avatarEl && fallbackEl) {
+    if (photoData) {
+      avatarEl.src = photoData;
+      avatarEl.style.display = 'block';
+      fallbackEl.style.display = 'none';
+    } else {
+      avatarEl.style.display = 'none';
+      fallbackEl.style.display = 'grid';
+    }
+  }
+}
+
+function initProfileModal() {
+  const modal = document.getElementById('profileModal');
+  const classInput = document.getElementById('profileClassInput');
+  const numberInput = document.getElementById('profileNumberInput');
+  const nameInput = document.getElementById('profileNameInput');
+  const photoInput = document.getElementById('profilePhotoInput');
+  const saveBtn = document.getElementById('profileSaveBtn');
+  const editBtn = document.getElementById('profileEditBtn');
+  const msgEl = document.getElementById('profileModalMsg');
+  if (!modal || !classInput || !numberInput || !nameInput || !photoInput || !saveBtn || !editBtn || !msgEl) return;
+
+  const fallback = getClassNumberFromAccessCode();
+  classInput.value = localStorage.getItem(PROFILE_CLASS_KEY) || (fallback ? String(fallback.classNo) : '');
+  numberInput.value = localStorage.getItem(PROFILE_NUMBER_KEY) || (fallback ? String(fallback.numberNo) : '');
+  nameInput.value = localStorage.getItem(PROFILE_NAME_KEY) || '';
+  let pendingPhoto = localStorage.getItem(PROFILE_PHOTO_KEY) || '';
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingPhoto = typeof reader.result === 'string' ? reader.result : '';
+      msgEl.textContent = '사진이 선택되었습니다.';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const classNo = Number(classInput.value || 0);
+    const numberNo = Number(numberInput.value || 0);
+    const name = nameInput.value.trim();
+    if (!Number.isInteger(classNo) || classNo < 1 || classNo > 8) { msgEl.textContent = '반은 1~8로 입력하세요.'; return; }
+    if (!Number.isInteger(numberNo) || numberNo < 1 || numberNo > 35) { msgEl.textContent = '번호는 1~35로 입력하세요.'; return; }
+    if (!name) { msgEl.textContent = '이름을 입력하세요.'; return; }
+    localStorage.setItem(PROFILE_CLASS_KEY, String(classNo));
+    localStorage.setItem(PROFILE_NUMBER_KEY, String(numberNo));
+    localStorage.setItem(PROFILE_NAME_KEY, name);
+    if (pendingPhoto) localStorage.setItem(PROFILE_PHOTO_KEY, pendingPhoto);
+    updateProfileHeader();
+    modal.classList.remove('show');
+  });
+
+  editBtn.addEventListener('click', () => { msgEl.textContent = ''; modal.classList.add('show'); });
+  updateProfileHeader();
+  if (!localStorage.getItem(PROFILE_NAME_KEY) || !localStorage.getItem(PROFILE_CLASS_KEY) || !localStorage.getItem(PROFILE_NUMBER_KEY)) {
+    modal.classList.add('show');
+  }
+}
 
 function setActive(btn) { document.querySelectorAll('.menu button').forEach((b) => b.classList.remove('active')); btn.classList.add('active'); }
 function showDashboard(btn) { setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active'); title.textContent = '기말 학습 대시보드'; desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.'; }
@@ -274,6 +358,7 @@ renderDday();
 loadGoal();
 if (goalSaveBtn) goalSaveBtn.addEventListener('click', saveGoal);
 if (goalInput) goalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveGoal(); });
+initProfileModal();
 initGlobalInk();
 
 window.showDashboard = showDashboard;
