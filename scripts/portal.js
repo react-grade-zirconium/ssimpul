@@ -49,9 +49,13 @@ const goalInput = document.getElementById('goalInput');
 const goalSaveBtn = document.getElementById('goalSaveBtn');
 const goalValueEl = document.getElementById('goalValue');
 const goalMsgEl = document.getElementById('goalMsg');
+const memoInput = document.getElementById('memoInput');
+const memoSaveBtn = document.getElementById('memoSaveBtn');
+const memoMsgEl = document.getElementById('memoMsg');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
+const MEMO_STORAGE_KEY = 'studymax_today_memo';
 const INK_STORAGE_KEY = 'studymax_ink_snapshot_v2';
 const PROFILE_NAME_KEY = 'studymax_profile_name';
 const PROFILE_CLASS_KEY = 'studymax_profile_class';
@@ -139,11 +143,13 @@ function initProfileModal() {
 }
 
 function setActive(btn) { document.querySelectorAll('.menu button').forEach((b) => b.classList.remove('active')); btn.classList.add('active'); }
-function showDashboard(btn) { setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active'); title.textContent = '기말 학습 대시보드'; desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.'; }
+function showDashboard(btn) { setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active'); title.textContent = '기말 학습 대시보드'; desc.textContent = ''; }
 function showSubject(btn, heading) { setActive(btn); dashPanel.classList.remove('active'); framePanel.classList.add('active'); frame.src = btn.dataset.src; title.textContent = heading; desc.textContent = '선택 과목만 집중해서 볼 수 있습니다.'; }
 function renderDday() { if (!ddayEl) return; const t = new Date(); const e = new Date(`${FINAL_EXAM_DATE}T00:00:00`); const ms = e - new Date(t.getFullYear(), t.getMonth(), t.getDate()); const d = Math.ceil(ms / 86400000); ddayEl.textContent = d > 0 ? `D-${d}` : d === 0 ? 'D-DAY' : `D+${Math.abs(d)}`; }
 function loadGoal() { const saved = localStorage.getItem(GOAL_STORAGE_KEY); if (saved && saved.trim()) { goalValueEl.textContent = saved; goalInput.value = saved; } }
 function saveGoal() { const v = goalInput.value.trim(); if (!v) { goalMsgEl.textContent = '목표를 입력해 주세요.'; return; } localStorage.setItem(GOAL_STORAGE_KEY, v); goalValueEl.textContent = v; goalMsgEl.textContent = '개인 목표가 저장되었습니다.'; setTimeout(() => { if (goalMsgEl.textContent === '개인 목표가 저장되었습니다.') goalMsgEl.textContent = ''; }, 1800); }
+function loadMemo() { const saved = localStorage.getItem(MEMO_STORAGE_KEY); if (memoInput && saved) memoInput.value = saved; }
+function saveMemo() { const v = memoInput?.value?.trim() || ''; localStorage.setItem(MEMO_STORAGE_KEY, v); if (memoMsgEl) { memoMsgEl.textContent = '오늘 메모가 저장되었습니다.'; setTimeout(() => { if (memoMsgEl.textContent === '오늘 메모가 저장되었습니다.') memoMsgEl.textContent = ''; }, 1800); } }
 
 function initToolbarDrag(toolbar) {
   const grip = document.getElementById('inkGrip');
@@ -335,8 +341,10 @@ function initGlobalInk() {
 
 renderDday();
 loadGoal();
+loadMemo();
 if (goalSaveBtn) goalSaveBtn.addEventListener('click', saveGoal);
 if (goalInput) goalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveGoal(); });
+if (memoSaveBtn) memoSaveBtn.addEventListener('click', saveMemo);
 initProfileModal();
 initGlobalInk();
 

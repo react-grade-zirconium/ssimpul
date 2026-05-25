@@ -27,7 +27,7 @@
     <header class="header box">
       <div>
         <h1 id="title">기말 학습 대시보드</h1>
-        <p id="desc">박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.</p>
+        <p id="desc"></p>
       </div>
       <div class="profile-chip">
         <div class="profile-avatar-wrap">
@@ -47,8 +47,6 @@
         <div class="dashboard-grid">
           <article class="card box"><h3>기말 D-DAY (2026-06-29)</h3><div class="v" id="ddayValue">D-0</div></article>
           <article class="card box"><h3>내 목표</h3><div class="v" id="goalValue">목표 설정 전</div></article>
-          <article class="card box"><h3>복습 완료율</h3><div class="v">68%</div></article>
-
           <article class="goal box">
             <h3>개인 목표 설정</h3>
             <div class="goal-form">
@@ -60,7 +58,11 @@
 
           <article class="memo box">
             <h3>오늘 메모</h3>
-            <textarea placeholder="핵심만 간단히 기록하세요."></textarea>
+            <textarea id="memoInput" placeholder="핵심만 간단히 기록하세요."></textarea>
+            <div class="memo-actions">
+              <button type="button" id="memoSaveBtn">메모 저장</button>
+            </div>
+            <p id="memoMsg" class="goal-msg"></p>
           </article>
         </div>
       </div>
