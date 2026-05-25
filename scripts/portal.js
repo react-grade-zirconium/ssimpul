@@ -148,8 +148,24 @@ function showSubject(btn, heading) { setActive(btn); dashPanel.classList.remove(
 function renderDday() { if (!ddayEl) return; const t = new Date(); const e = new Date(`${FINAL_EXAM_DATE}T00:00:00`); const ms = e - new Date(t.getFullYear(), t.getMonth(), t.getDate()); const d = Math.ceil(ms / 86400000); ddayEl.textContent = d > 0 ? `D-${d}` : d === 0 ? 'D-DAY' : `D+${Math.abs(d)}`; }
 function loadGoal() { const saved = localStorage.getItem(GOAL_STORAGE_KEY); if (saved && saved.trim()) { goalValueEl.textContent = saved; goalInput.value = saved; } }
 function saveGoal() { const v = goalInput.value.trim(); if (!v) { goalMsgEl.textContent = '목표를 입력해 주세요.'; return; } localStorage.setItem(GOAL_STORAGE_KEY, v); goalValueEl.textContent = v; goalMsgEl.textContent = '개인 목표가 저장되었습니다.'; setTimeout(() => { if (goalMsgEl.textContent === '개인 목표가 저장되었습니다.') goalMsgEl.textContent = ''; }, 1800); }
-function loadMemo() { const saved = localStorage.getItem(MEMO_STORAGE_KEY); if (memoInput && saved) memoInput.value = saved; }
-function saveMemo() { const v = memoInput?.value?.trim() || ''; localStorage.setItem(MEMO_STORAGE_KEY, v); if (memoMsgEl) { memoMsgEl.textContent = '오늘 메모가 저장되었습니다.'; setTimeout(() => { if (memoMsgEl.textContent === '오늘 메모가 저장되었습니다.') memoMsgEl.textContent = ''; }, 1800); } }
+function loadMemo() {
+  const saved = localStorage.getItem(MEMO_STORAGE_KEY);
+  if (!memoInput) return;
+  memoInput.value = saved || '';
+}
+function saveMemo() {
+  if (!memoInput) return;
+  try {
+    const v = memoInput.value || '';
+    localStorage.setItem(MEMO_STORAGE_KEY, v);
+    if (memoMsgEl) {
+      memoMsgEl.textContent = '오늘 메모가 저장되었습니다.';
+      setTimeout(() => { if (memoMsgEl.textContent === '오늘 메모가 저장되었습니다.') memoMsgEl.textContent = ''; }, 1800);
+    }
+  } catch (_) {
+    if (memoMsgEl) memoMsgEl.textContent = '메모 저장에 실패했습니다.';
+  }
+}
 
 function initToolbarDrag(toolbar) {
   const grip = document.getElementById('inkGrip');
@@ -345,6 +361,7 @@ loadMemo();
 if (goalSaveBtn) goalSaveBtn.addEventListener('click', saveGoal);
 if (goalInput) goalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveGoal(); });
 if (memoSaveBtn) memoSaveBtn.addEventListener('click', saveMemo);
+if (memoInput) memoInput.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveMemo(); });
 initProfileModal();
 initGlobalInk();
 

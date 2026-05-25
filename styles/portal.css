@@ -20,6 +20,7 @@ body{font-family:'Pretendard',sans-serif;min-height:100vh;display:flex;gap:14px;
 .content{overflow:hidden}.panel{display:none;height:100%}.panel.active{display:block}
 .dashboard-grid{padding:14px;display:grid;gap:10px;grid-template-columns:repeat(3,1fr)}
 .card{padding:14px}.card h3{font-size:.86rem;color:var(--sub);margin-bottom:8px}.card .v{font-size:1.4rem;font-weight:800}
+.team-card p{font-size:.84rem;color:#334155;line-height:1.45}
 .goal{grid-column:1/-1;padding:14px}.goal h3{font-size:.92rem;margin-bottom:8px}
 .goal-form{display:flex;gap:8px;flex-wrap:wrap}.goal-form input{flex:1;min-width:220px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit}
 .goal-form button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 12px;font-weight:600;cursor:pointer}
