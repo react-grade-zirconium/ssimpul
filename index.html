@@ -19,9 +19,10 @@
       <p class="tagline">학습 코드를 입력하고 바로 시작하세요.</p>
 
       <div class="code-box">
-        <label for="accessCodeInput">개인 학습 코드</label>
+        <label for="classInput">학급 정보</label>
         <div class="code-row">
-          <input id="accessCodeInput" type="text" placeholder="코드를 입력하세요" />
+          <input id="classInput" type="number" min="1" max="8" placeholder="반 (1~8)" />
+          <input id="numberInput" type="number" min="1" max="35" placeholder="번호 (1~35)" />
           <button id="codeSaveBtn" type="button" class="btn sub">코드 저장</button>
         </div>
         <p id="codeMsg" class="code-msg"></p>
