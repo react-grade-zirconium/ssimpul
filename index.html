@@ -19,14 +19,12 @@
       <p class="desc">복잡한 요소를 줄이고 필요한 파트만 담은 시작 화면입니다.</p>
 
       <div class="code-box">
-        <label>Firebase 로그인</label>
+        <label for="accessCodeInput">개인 학습 코드</label>
         <div class="code-row">
-          <button id="emailLoginBtn" type="button" class="btn sub">이메일 로그인</button>
-          <button id="emailSignupBtn" type="button" class="btn sub">이메일 가입</button>
-          <button id="anonLoginBtn" type="button" class="btn sub">익명 시작</button>
-          <button id="logoutBtn" type="button" class="btn sub">로그아웃</button>
+          <input id="accessCodeInput" type="text" placeholder="코드를 입력하세요" />
+          <button id="codeSaveBtn" type="button" class="btn sub">코드 저장</button>
         </div>
-        <p id="authMsg" class="code-msg"></p>
+        <p id="codeMsg" class="code-msg"></p>
       </div>
 
       <div class="actions">
@@ -41,6 +39,6 @@
       <article class="box quick-card"><h3>메모 활용</h3><p>핵심 키워드만 짧게 저장</p></article>
     </section>
   </main>
-  <script type="module" src="./scripts/index.js"></script>
+  <script src="./scripts/index.js"></script>
 </body>
 </html>
