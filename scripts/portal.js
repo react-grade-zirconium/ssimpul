@@ -11,6 +11,8 @@ removeUnexpectedBodyTextNodes();
 
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
+const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
+const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 
 const MASTER_CODE = 'simpul';
 const CLASS_MIN = 1;
