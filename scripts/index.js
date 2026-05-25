@@ -155,7 +155,9 @@ async function saveCode() {
       result = await bindCodeToDevice(serverCode, deviceId, true);
     }
     if (!result?.ok) {
-      codeMsg.textContent = result?.message || `코드 등록에 실패했습니다. (${result?.reason || 'UNKNOWN'})`;
+      const reason = result?.reason || 'UNKNOWN';
+      const baseMessage = result?.message || '코드 등록에 실패했습니다.';
+      codeMsg.textContent = `${baseMessage} [reason: ${reason}]`;
       return false;
     }
     localStorage.setItem(ACCESS_CODE_KEY, code);
