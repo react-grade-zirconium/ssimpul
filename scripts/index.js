@@ -12,7 +12,6 @@ const ACCESS_USER_KEY = 'studymax_access_user';
 const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
 const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 const DEVICE_ID_KEY = 'studymax_device_id';
-const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
 
 const CLASS_MIN = 1;
@@ -32,34 +31,6 @@ function getOrCreateDeviceId() {
   return created;
 }
 
-async function bindCodeToDevice(code, deviceId, forceReset = false) {
-  const res = await fetch(ACCESS_BIND_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, deviceId, forceReset }),
-  });
-  let payload = null;
-  try {
-    payload = await res.json();
-  } catch (_) {
-    payload = null;
-  }
-  if (!res.ok) {
-    return {
-      ok: false,
-      reason: payload?.reason || 'BIND_FAILED',
-      message: payload?.message || '코드 등록에 실패했습니다.',
-    };
-  }
-  return payload;
-}
-
-async function verifyCodeOnDevice(code, deviceId) {
-  const query = new URLSearchParams({ code, deviceId }).toString();
-  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
-  if (!res.ok) throw new Error('verify_failed');
-  return res.json();
-}
 
 function typeTo(el, text, duration = 900) {
   el.classList.add('typing');
@@ -104,23 +75,6 @@ function fillInputsFromCode(code) {
   return true;
 }
 
-function buildServerCodeCandidates(classNo, numberNo) {
-  const number2 = String(numberNo).padStart(2, '0');
-  const class2 = String(classNo).padStart(2, '0');
-  const raw = [
-    `${classNo}-${number2}`,
-    `${classNo}-${numberNo}`,
-    `26-10${classNo}${number2}`,
-    `26-10${classNo}${numberNo}`,
-    `26-10${class2}${number2}`,
-    `26-102${number2}`,
-  ];
-  return [...new Set(raw)];
-}
-
-function getStoredServerCode() {
-  return localStorage.getItem(ACCESS_SERVER_CODE_KEY) || localStorage.getItem(ACCESS_CODE_KEY);
-}
 
 
 async function saveCode() {
@@ -137,69 +91,17 @@ async function saveCode() {
     return false;
   }
   const code = parsed.code;
-  const candidates = buildServerCodeCandidates(parsed.classNo, parsed.numberNo);
-
-  const deviceId = getOrCreateDeviceId();
-  try {
-    let serverCode = candidates[0];
-    let result = { ok: false };
-    for (const candidate of candidates) {
-      serverCode = candidate;
-      result = await bindCodeToDevice(serverCode, deviceId, false);
-      if (result?.ok || result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') break;
-    }
-    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
-      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
-      if (!confirmed) {
-        codeMsg.textContent = '초기화가 취소되었습니다.';
-        return false;
-      }
-      result = await bindCodeToDevice(serverCode, deviceId, true);
-    }
-    if (!result?.ok) {
-      const reason = result?.reason || 'UNKNOWN';
-      const baseMessage = result?.message || '코드 등록에 실패했습니다.';
-      if (reason === 'BIND_FAILED' || reason === 'UNKNOWN') {
-        localStorage.setItem(ACCESS_CODE_KEY, code);
-        localStorage.setItem(ACCESS_USER_KEY, parsed.label);
-        localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
-        localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
-        codeMsg.textContent = `서버 등록 실패(${reason})로 로컬 모드 저장: ${parsed.label}`;
-        return true;
-      }
-      codeMsg.textContent = `${baseMessage} [reason: ${reason}]`;
-      return false;
-    }
-    localStorage.setItem(ACCESS_CODE_KEY, code);
-    localStorage.setItem(ACCESS_SERVER_CODE_KEY, serverCode);
-    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'server');
-    localStorage.setItem(ACCESS_USER_KEY, parsed.label);
-    codeMsg.textContent = `${parsed.label} 코드 저장 완료 (기기 초기화 반영)`;
-    return true;
-  } catch (_) {
-    localStorage.setItem(ACCESS_CODE_KEY, code);
-    localStorage.setItem(ACCESS_USER_KEY, parsed.label);
-    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
-    localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
-    codeMsg.textContent = `서버 연결 실패로 로컬 모드 저장: ${parsed.label}`;
-    return true;
-  }
+  localStorage.setItem(ACCESS_CODE_KEY, code);
+  localStorage.setItem(ACCESS_USER_KEY, parsed.label);
+  codeMsg.textContent = `${parsed.label} 코드 저장 완료 (로컬 저장)`;
+  return true;
 }
 
 async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (code === MASTER_CODE) return true;
   if (!code || !fillInputsFromCode(code)) return false;
-  const bindMode = localStorage.getItem(ACCESS_BIND_MODE_KEY) || 'server';
-  if (bindMode === 'local') return true;
-  const serverCode = getStoredServerCode();
-  const deviceId = getOrCreateDeviceId();
-  try {
-    const result = await verifyCodeOnDevice(serverCode, deviceId);
-    return Boolean(result?.ok && result?.valid);
-  } catch (_) {
-    return false;
-  }
+  return true;
 }
 
 function loadCode() {
@@ -207,7 +109,6 @@ function loadCode() {
   if (code === MASTER_CODE) {
     if (classInput) classInput.value = code;
     if (numberInput) numberInput.value = '';
-    localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
     codeMsg.textContent = '마스터 코드가 등록되어 있습니다.';
     return;
   }

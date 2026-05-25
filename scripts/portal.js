@@ -14,8 +14,6 @@ const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
 const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 
-const DEVICE_ID_KEY = 'studymax_device_id';
-const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
 const CLASS_MIN = 1;
 const CLASS_MAX = 8;
@@ -30,30 +28,11 @@ function isValidClassNumberCode(code) {
   return Number.isInteger(classNo) && Number.isInteger(numberNo) && classNo >= CLASS_MIN && classNo <= CLASS_MAX && numberNo >= NUMBER_MIN && numberNo <= NUMBER_MAX;
 }
 
-async function verifyCodeOnDevice(code, deviceId) {
-  const query = new URLSearchParams({ code, deviceId }).toString();
-  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
-  if (!res.ok) throw new Error('verify_failed');
-  return res.json();
-}
 
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
-  const serverCode = localStorage.getItem(ACCESS_SERVER_CODE_KEY) || code;
-  const bindMode = localStorage.getItem(ACCESS_BIND_MODE_KEY) || 'server';
-  const deviceId = localStorage.getItem(DEVICE_ID_KEY);
   if (code === MASTER_CODE) return;
   if (!code || !isValidClassNumberCode(code)) {
-    window.location.replace('./index.html');
-    return;
-  }
-  if (bindMode === 'local') return;
-  if (!deviceId) { window.location.replace('./index.html'); return; }
-  try {
-    const result = await verifyCodeOnDevice(serverCode, deviceId);
-    if (result?.ok && result?.valid) return;
-    window.location.replace('./index.html');
-  } catch (_) {
     window.location.replace('./index.html');
   }
 }
