@@ -47,42 +47,9 @@ function reduceFirstLineToShim() { line1.innerHTML = '<span id="shimCore" class=
 function removeServiceFromSecondLine() { line2.innerHTML = '<span id="leftKeep" class="left-keep morph-piece">풀</span><span id="fadeService" class="fade-service">서비스</span><span id="rightKeep" class="right-keep morph-piece"> 스터디</span>'; }
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
 function morphIntoFinalLine() {
-  document.getElementById('fadeName')?.classList.add('hide');
-  document.getElementById('fadeService')?.classList.add('hide');
-  document.querySelector('.hero')?.classList.add('morphing');
-  setTimeout(() => { showFinalMergedLine(); }, 450);
-  setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-lines'); }, 1050);
+  document.querySelector('.hero')?.classList.add('collapse-lines');
+  setTimeout(() => { showFinalMergedLine(); }, 300);
 }
-
-
-function parseClassNumberInput() {
-  const classNo = Number(classInput?.value ?? '');
-  const numberNo = Number(numberInput?.value ?? '');
-  if (!Number.isInteger(classNo) || !Number.isInteger(numberNo)) {
-    return { ok: false, message: '반/번호를 숫자로 입력해 주세요.' };
-  }
-  if (classNo < CLASS_MIN || classNo > CLASS_MAX) {
-    return { ok: false, message: '반은 1~8 사이만 입력할 수 있습니다.' };
-  }
-  if (numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) {
-    return { ok: false, message: '번호는 1~35 사이만 입력할 수 있습니다.' };
-  }
-  const code = `${classNo}-${String(numberNo).padStart(2, '0')}`;
-  return { ok: true, classNo, numberNo, code, label: `${classNo}반 ${numberNo}번` };
-}
-
-function fillInputsFromCode(code) {
-  const m = code && code.match(/^(\d+)-(\d{2})$/);
-  if (!m) return false;
-  const classNo = Number(m[1]);
-  const numberNo = Number(m[2]);
-  if (classNo < CLASS_MIN || classNo > CLASS_MAX || numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) return false;
-  if (classInput) classInput.value = String(classNo);
-  if (numberInput) numberInput.value = String(numberNo);
-  return true;
-}
-
-
 
 
 function parseClassNumberInput() {
