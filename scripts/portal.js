@@ -12,64 +12,25 @@ removeUnexpectedBodyTextNodes();
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
 
-const DEVICE_ID_KEY = 'studymax_device_id';
-const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
-const VALID_CODES = {
-  '26-10201': '학생 26-10201',
-  '26-10202': '학생 26-10202',
-  '26-10203': '학생 26-10203',
-  '26-10204': '학생 26-10204',
-  '26-10205': '학생 26-10205',
-  '26-10206': '학생 26-10206',
-  '26-10207': '학생 26-10207',
-  '26-10208': '학생 26-10208',
-  '26-10209': '학생 26-10209',
-  '26-10210': '학생 26-10210',
-  '26-10211': '학생 26-10211',
-  '26-10212': '학생 26-10212',
-  '26-10213': '학생 26-10213',
-  '26-10214': '학생 26-10214',
-  '26-10215': '학생 26-10215',
-  '26-10216': '학생 26-10216',
-  '26-10217': '학생 26-10217',
-  '26-10218': '학생 26-10218',
-  '26-10219': '학생 26-10219',
-  '26-10220': '학생 26-10220',
-  '26-10221': '학생 26-10221',
-  '26-10222': '학생 26-10222',
-  '26-10223': '학생 26-10223',
-  '26-10224': '학생 26-10224',
-  '26-10225': '학생 26-10225',
-  '26-10226': '학생 26-10226',
-  '26-10227': '학생 26-10227',
-  '26-10228': '학생 26-10228',
-  '26-10229': '학생 26-10229',
-  '26-10230': '학생 26-10230',
-  '26-10231': '학생 26-10231',
-  '26-10232': '학생 26-10232',
-};
+const CLASS_MIN = 1;
+const CLASS_MAX = 8;
+const NUMBER_MIN = 1;
+const NUMBER_MAX = 35;
 
-async function verifyCodeOnDevice(code, deviceId) {
-  const query = new URLSearchParams({ code, deviceId }).toString();
-  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
-  if (!res.ok) throw new Error('verify_failed');
-  return res.json();
+function isValidClassNumberCode(code) {
+  const m = code && code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return false;
+  const classNo = Number(m[1]);
+  const numberNo = Number(m[2]);
+  return Number.isInteger(classNo) && Number.isInteger(numberNo) && classNo >= CLASS_MIN && classNo <= CLASS_MAX && numberNo >= NUMBER_MIN && numberNo <= NUMBER_MAX;
 }
+
 
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
-  const deviceId = localStorage.getItem(DEVICE_ID_KEY);
   if (code === MASTER_CODE) return;
-  if (!code || !deviceId || !VALID_CODES[code]) {
-    window.location.replace('./index.html');
-    return;
-  }
-  try {
-    const result = await verifyCodeOnDevice(code, deviceId);
-    if (result?.ok && result?.valid) return;
-    window.location.replace('./index.html');
-  } catch (_) {
+  if (!code || !isValidClassNumberCode(code)) {
     window.location.replace('./index.html');
   }
 }
@@ -90,6 +51,90 @@ const goalMsgEl = document.getElementById('goalMsg');
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
 const INK_STORAGE_KEY = 'studymax_ink_snapshot_v2';
+const PROFILE_NAME_KEY = 'studymax_profile_name';
+const PROFILE_CLASS_KEY = 'studymax_profile_class';
+const PROFILE_NUMBER_KEY = 'studymax_profile_number';
+const PROFILE_PHOTO_KEY = 'studymax_profile_photo';
+
+function getClassNumberFromAccessCode() {
+  const code = localStorage.getItem(ACCESS_CODE_KEY) || '';
+  const m = code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return null;
+  return { classNo: Number(m[1]), numberNo: Number(m[2]) };
+}
+
+function updateProfileHeader() {
+  const nameEl = document.getElementById('profileNameLabel');
+  const classEl = document.getElementById('profileClassLabel');
+  const avatarEl = document.getElementById('profileAvatar');
+  const fallbackEl = document.getElementById('profileAvatarFallback');
+  const name = localStorage.getItem(PROFILE_NAME_KEY) || '이름 미설정';
+  const classNo = localStorage.getItem(PROFILE_CLASS_KEY);
+  const numberNo = localStorage.getItem(PROFILE_NUMBER_KEY);
+  const photoData = localStorage.getItem(PROFILE_PHOTO_KEY);
+  if (nameEl) nameEl.textContent = name;
+  if (classEl) classEl.textContent = classNo && numberNo ? `${classNo}반 ${numberNo}번` : '반/번호 미설정';
+  if (avatarEl && fallbackEl) {
+    if (photoData) {
+      avatarEl.src = photoData;
+      avatarEl.style.display = 'block';
+      fallbackEl.style.display = 'none';
+    } else {
+      avatarEl.style.display = 'none';
+      fallbackEl.style.display = 'grid';
+    }
+  }
+}
+
+function initProfileModal() {
+  const modal = document.getElementById('profileModal');
+  const classInput = document.getElementById('profileClassInput');
+  const numberInput = document.getElementById('profileNumberInput');
+  const nameInput = document.getElementById('profileNameInput');
+  const photoInput = document.getElementById('profilePhotoInput');
+  const saveBtn = document.getElementById('profileSaveBtn');
+  const editBtn = document.getElementById('profileEditBtn');
+  const msgEl = document.getElementById('profileModalMsg');
+  if (!modal || !classInput || !numberInput || !nameInput || !photoInput || !saveBtn || !editBtn || !msgEl) return;
+
+  const fallback = getClassNumberFromAccessCode();
+  classInput.value = localStorage.getItem(PROFILE_CLASS_KEY) || (fallback ? String(fallback.classNo) : '');
+  numberInput.value = localStorage.getItem(PROFILE_NUMBER_KEY) || (fallback ? String(fallback.numberNo) : '');
+  nameInput.value = localStorage.getItem(PROFILE_NAME_KEY) || '';
+  let pendingPhoto = localStorage.getItem(PROFILE_PHOTO_KEY) || '';
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingPhoto = typeof reader.result === 'string' ? reader.result : '';
+      msgEl.textContent = '사진이 선택되었습니다.';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const classNo = Number(classInput.value || 0);
+    const numberNo = Number(numberInput.value || 0);
+    const name = nameInput.value.trim();
+    if (!Number.isInteger(classNo) || classNo < 1 || classNo > 8) { msgEl.textContent = '반은 1~8로 입력하세요.'; return; }
+    if (!Number.isInteger(numberNo) || numberNo < 1 || numberNo > 35) { msgEl.textContent = '번호는 1~35로 입력하세요.'; return; }
+    if (!name) { msgEl.textContent = '이름을 입력하세요.'; return; }
+    localStorage.setItem(PROFILE_CLASS_KEY, String(classNo));
+    localStorage.setItem(PROFILE_NUMBER_KEY, String(numberNo));
+    localStorage.setItem(PROFILE_NAME_KEY, name);
+    if (pendingPhoto) localStorage.setItem(PROFILE_PHOTO_KEY, pendingPhoto);
+    updateProfileHeader();
+    modal.classList.remove('show');
+  });
+
+  editBtn.addEventListener('click', () => { msgEl.textContent = ''; modal.classList.add('show'); });
+  updateProfileHeader();
+  if (!localStorage.getItem(PROFILE_NAME_KEY) || !localStorage.getItem(PROFILE_CLASS_KEY) || !localStorage.getItem(PROFILE_NUMBER_KEY)) {
+    modal.classList.add('show');
+  }
+}
 
 function setActive(btn) { document.querySelectorAll('.menu button').forEach((b) => b.classList.remove('active')); btn.classList.add('active'); }
 function showDashboard(btn) { setActive(btn); dashPanel.classList.add('active'); framePanel.classList.remove('active'); title.textContent = '기말 학습 대시보드'; desc.textContent = '박스 기반 레이아웃으로 섹션을 분리해 깔끔하게 구성했습니다.'; }
@@ -290,6 +335,7 @@ renderDday();
 loadGoal();
 if (goalSaveBtn) goalSaveBtn.addEventListener('click', saveGoal);
 if (goalInput) goalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveGoal(); });
+initProfileModal();
 initGlobalInk();
 
 window.showDashboard = showDashboard;
