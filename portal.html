@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STUDY MAX FINAL — 학습 포털</title>
+  <title>SIMPUL STUDY — 학습 포털</title>
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles/portal.css" />
 </head>
 <body>
   <aside class="sidebar box">
-    <div class="logo">STUDY MAX FINAL</div>
+    <div class="logo">SIMPUL STUDY</div>
     <nav class="menu">
       <button class="active" onclick="showDashboard(this)">🏁 대시보드</button>
       <button data-src="korean_hub.html" onclick="showSubject(this,'국어 학습')">📖 국어</button>
@@ -69,23 +69,6 @@
   </div>
   <canvas id="inkLayer" aria-label="전체 화면 손글씨 레이어"></canvas>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBgIrOjuh4VV0q4oeEA40N_wiKvSBlAJjc",
-      authDomain: "kh-simpul.firebaseapp.com",
-      projectId: "kh-simpul",
-      storageBucket: "kh-simpul.firebasestorage.app",
-      messagingSenderId: "110693154600",
-      appId: "1:110693154600:web:7eaa6be392586d94c4da1d",
-      measurementId: "G-PQYW3L59NN"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    getAnalytics(app);
-  </script>
   <script src="./scripts/portal.js"></script>
 </body>
 </html>
