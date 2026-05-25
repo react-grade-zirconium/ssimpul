@@ -9,6 +9,7 @@ const startBtn = document.getElementById('startStudyBtn');
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
+const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
@@ -102,6 +103,17 @@ function fillInputsFromCode(code) {
   return true;
 }
 
+function buildServerCodeCandidates(classNo, numberNo) {
+  const modern = `${classNo}-${String(numberNo).padStart(2, '0')}`;
+  const legacy = `26-10${classNo}${String(numberNo).padStart(2, '0')}`;
+  return [modern, legacy];
+}
+
+function getStoredServerCode() {
+  return localStorage.getItem(ACCESS_SERVER_CODE_KEY) || localStorage.getItem(ACCESS_CODE_KEY);
+}
+
+
 async function saveCode() {
   if ((classInput?.value || '').trim().toLowerCase() === MASTER_CODE) {
     localStorage.setItem(ACCESS_CODE_KEY, MASTER_CODE);
@@ -115,23 +127,30 @@ async function saveCode() {
     return false;
   }
   const code = parsed.code;
+  const candidates = buildServerCodeCandidates(parsed.classNo, parsed.numberNo);
 
   const deviceId = getOrCreateDeviceId();
   try {
-    let result = await bindCodeToDevice(code, deviceId, false);
+    let serverCode = candidates[0];
+    let result = await bindCodeToDevice(serverCode, deviceId, false);
+    if (!result?.ok) {
+      serverCode = candidates[1];
+      result = await bindCodeToDevice(serverCode, deviceId, false);
+    }
     if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
       const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
       if (!confirmed) {
         codeMsg.textContent = '초기화가 취소되었습니다.';
         return false;
       }
-      result = await bindCodeToDevice(code, deviceId, true);
+      result = await bindCodeToDevice(serverCode, deviceId, true);
     }
     if (!result?.ok) {
       codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
       return false;
     }
     localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_SERVER_CODE_KEY, serverCode);
     localStorage.setItem(ACCESS_USER_KEY, parsed.label);
     codeMsg.textContent = `${parsed.label} 코드 저장 완료 (기기 초기화 반영)`;
     return true;
@@ -145,9 +164,10 @@ async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (code === MASTER_CODE) return true;
   if (!code || !fillInputsFromCode(code)) return false;
+  const serverCode = getStoredServerCode();
   const deviceId = getOrCreateDeviceId();
   try {
-    const result = await verifyCodeOnDevice(code, deviceId);
+    const result = await verifyCodeOnDevice(serverCode, deviceId);
     return Boolean(result?.ok && result?.valid);
   } catch (_) {
     return false;
@@ -159,6 +179,7 @@ function loadCode() {
   if (code === MASTER_CODE) {
     if (classInput) classInput.value = code;
     if (numberInput) numberInput.value = '';
+    localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
     codeMsg.textContent = '마스터 코드가 등록되어 있습니다.';
     return;
   }
