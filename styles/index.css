@@ -12,6 +12,10 @@ body{min-height:100vh;padding:28px;font-family:'Pretendard',sans-serif;backgroun
 .fade-name,.fade-service{opacity:1;display:inline-block;transition:opacity 1.15s ease,transform 1.15s ease}
 .fade-name.hide{opacity:0}
 .fade-service.hide{opacity:0;transform:translateY(-12px)}
+.morph-piece{display:inline-block;transition:transform .9s cubic-bezier(.22,.8,.2,1),opacity .9s ease}
+.hero.morphing #shimCore{transform:translateX(130px) translateY(34px)}
+.hero.morphing #leftKeep{transform:translateX(-62px)}
+.hero.morphing #rightKeep{transform:translateX(-132px)}
 .final-line{font-size:clamp(1.9rem,4.8vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.2;opacity:0;transform:translateY(-18px);transition:opacity .75s ease,transform .75s ease;color:#dbeafe}
 .final-line.show-final{opacity:1;transform:translateY(0)}
 .tagline{margin-top:16px;color:#cfe0ff;font-size:1rem;line-height:1.65;font-weight:600}

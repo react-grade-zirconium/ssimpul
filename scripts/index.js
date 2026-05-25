@@ -19,7 +19,7 @@ const CLASS_MAX = 8;
 const NUMBER_MIN = 1;
 const NUMBER_MAX = 35;
 
-const FIRST_FULL = '심규원, 최시원의';
+const FIRST_FULL = '심규원·최시원의';
 const SECOND_FULL = '풀서비스 스터디';
 const FINAL_TEXT = '심풀 스터디';
 
@@ -43,9 +43,46 @@ function typeTo(el, text, duration = 900) {
   });
 }
 function freeze(el) { el.classList.remove('typing'); el.style.transition = 'none'; el.style.maxWidth = 'none'; el.style.borderRight = 'none'; }
-function reduceFirstLineToShim() { line1.innerHTML = '<span class="shim-core">심</span><span id="fadeName" class="fade-name">규원, 최시원의</span>'; requestAnimationFrame(() => document.getElementById('fadeName')?.classList.add('hide')); }
-function removeServiceFromSecondLine() { line2.innerHTML = '<span class="left-keep">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="right-keep"> 스터디</span>'; requestAnimationFrame(() => document.getElementById('fadeService')?.classList.add('hide')); }
+function reduceFirstLineToShim() { line1.innerHTML = '<span id="shimCore" class="shim-core morph-piece">심</span><span id="fadeName" class="fade-name">규원·최시원의</span>'; }
+function removeServiceFromSecondLine() { line2.innerHTML = '<span id="leftKeep" class="left-keep morph-piece">풀</span><span id="fadeService" class="fade-service">서비스</span><span id="rightKeep" class="right-keep morph-piece"> 스터디</span>'; }
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
+function morphIntoFinalLine() {
+  document.getElementById('fadeName')?.classList.add('hide');
+  document.getElementById('fadeService')?.classList.add('hide');
+  document.querySelector('.hero')?.classList.add('morphing');
+  setTimeout(() => { showFinalMergedLine(); }, 450);
+  setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-lines'); }, 1050);
+}
+
+
+function parseClassNumberInput() {
+  const classNo = Number(classInput?.value ?? '');
+  const numberNo = Number(numberInput?.value ?? '');
+  if (!Number.isInteger(classNo) || !Number.isInteger(numberNo)) {
+    return { ok: false, message: '반/번호를 숫자로 입력해 주세요.' };
+  }
+  if (classNo < CLASS_MIN || classNo > CLASS_MAX) {
+    return { ok: false, message: '반은 1~8 사이만 입력할 수 있습니다.' };
+  }
+  if (numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) {
+    return { ok: false, message: '번호는 1~35 사이만 입력할 수 있습니다.' };
+  }
+  const code = `${classNo}-${String(numberNo).padStart(2, '0')}`;
+  return { ok: true, classNo, numberNo, code, label: `${classNo}반 ${numberNo}번` };
+}
+
+function fillInputsFromCode(code) {
+  const m = code && code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return false;
+  const classNo = Number(m[1]);
+  const numberNo = Number(m[2]);
+  if (classNo < CLASS_MIN || classNo > CLASS_MAX || numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) return false;
+  if (classInput) classInput.value = String(classNo);
+  if (numberInput) numberInput.value = String(numberNo);
+  return true;
+}
+
+
 
 
 function parseClassNumberInput() {
@@ -125,7 +162,7 @@ typeTo(line1, FIRST_FULL, 900);
 setTimeout(() => { freeze(line1); typeTo(line2, SECOND_FULL, 850); }, 1100);
 setTimeout(() => { freeze(line2); }, 2100);
 setTimeout(() => { reduceFirstLineToShim(); removeServiceFromSecondLine(); }, 3600);
-setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-lines'); showFinalMergedLine(); }, 5200);
+setTimeout(() => { morphIntoFinalLine(); }, 5200);
 
 getOrCreateDeviceId();
 loadCode();
