@@ -1,7 +1,8 @@
 const line1 = document.getElementById('line1');
 const line2 = document.getElementById('line2');
 const finalLine = document.getElementById('finalLine');
-const codeInput = document.getElementById('accessCodeInput');
+const classInput = document.getElementById('classInput');
+const numberInput = document.getElementById('numberInput');
 const codeSaveBtn = document.getElementById('codeSaveBtn');
 const codeMsg = document.getElementById('codeMsg');
 const startBtn = document.getElementById('startStudyBtn');
@@ -9,45 +10,14 @@ const startBtn = document.getElementById('startStudyBtn');
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
 const DEVICE_ID_KEY = 'studymax_device_id';
-const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
 
-const VALID_CODES = {
-  '26-10201': '학생 26-10201',
-  '26-10202': '학생 26-10202',
-  '26-10203': '학생 26-10203',
-  '26-10204': '학생 26-10204',
-  '26-10205': '학생 26-10205',
-  '26-10206': '학생 26-10206',
-  '26-10207': '학생 26-10207',
-  '26-10208': '학생 26-10208',
-  '26-10209': '학생 26-10209',
-  '26-10210': '학생 26-10210',
-  '26-10211': '학생 26-10211',
-  '26-10212': '학생 26-10212',
-  '26-10213': '학생 26-10213',
-  '26-10214': '학생 26-10214',
-  '26-10215': '학생 26-10215',
-  '26-10216': '학생 26-10216',
-  '26-10217': '학생 26-10217',
-  '26-10218': '학생 26-10218',
-  '26-10219': '학생 26-10219',
-  '26-10220': '학생 26-10220',
-  '26-10221': '학생 26-10221',
-  '26-10222': '학생 26-10222',
-  '26-10223': '학생 26-10223',
-  '26-10224': '학생 26-10224',
-  '26-10225': '학생 26-10225',
-  '26-10226': '학생 26-10226',
-  '26-10227': '학생 26-10227',
-  '26-10228': '학생 26-10228',
-  '26-10229': '학생 26-10229',
-  '26-10230': '학생 26-10230',
-  '26-10231': '학생 26-10231',
-  '26-10232': '학생 26-10232',
-};
+const CLASS_MIN = 1;
+const CLASS_MAX = 8;
+const NUMBER_MIN = 1;
+const NUMBER_MAX = 35;
 
-const FIRST_FULL = '심규원, 최시원의';
+const FIRST_FULL = '심규원·최시원의';
 const SECOND_FULL = '풀서비스 스터디';
 const FINAL_TEXT = '심풀 스터디';
 
@@ -59,34 +29,6 @@ function getOrCreateDeviceId() {
   return created;
 }
 
-async function bindCodeToDevice(code, deviceId, forceReset = false) {
-  const res = await fetch(ACCESS_BIND_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, deviceId, forceReset }),
-  });
-  let payload = null;
-  try {
-    payload = await res.json();
-  } catch (_) {
-    payload = null;
-  }
-  if (!res.ok) {
-    return {
-      ok: false,
-      reason: payload?.reason || 'BIND_FAILED',
-      message: payload?.message || '코드 등록에 실패했습니다.',
-    };
-  }
-  return payload;
-}
-
-async function verifyCodeOnDevice(code, deviceId) {
-  const query = new URLSearchParams({ code, deviceId }).toString();
-  const res = await fetch(`${ACCESS_BIND_API}?${query}`, { method: 'GET' });
-  if (!res.ok) throw new Error('verify_failed');
-  return res.json();
-}
 
 function typeTo(el, text, duration = 900) {
   el.classList.add('typing');
@@ -99,71 +41,82 @@ function typeTo(el, text, duration = 900) {
   });
 }
 function freeze(el) { el.classList.remove('typing'); el.style.transition = 'none'; el.style.maxWidth = 'none'; el.style.borderRight = 'none'; }
-function reduceFirstLineToShim() { line1.innerHTML = '<span class="shim-core">심</span><span id="fadeName" class="fade-name">규원, 최시원의</span>'; requestAnimationFrame(() => document.getElementById('fadeName')?.classList.add('hide')); }
-function removeServiceFromSecondLine() { line2.innerHTML = '<span class="left-keep">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="right-keep"> 스터디</span>'; requestAnimationFrame(() => document.getElementById('fadeService')?.classList.add('hide')); }
+function reduceFirstLineToShim() { line1.innerHTML = '<span id="shimCore" class="shim-core morph-piece">심</span><span id="fadeName" class="fade-name">규원·최시원의</span>'; }
+function removeServiceFromSecondLine() { line2.innerHTML = '<span id="leftKeep" class="left-keep morph-piece">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="line-gap" aria-hidden="true">&nbsp;</span><span id="rightKeep" class="right-keep morph-piece">스터디</span>'; }
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
+function morphIntoFinalLine() {
+  document.querySelector('.hero')?.classList.add('collapse-lines');
+  setTimeout(() => { showFinalMergedLine(); }, 300);
+}
+
+
+function parseClassNumberInput() {
+  const classNo = Number(classInput?.value ?? '');
+  const numberNo = Number(numberInput?.value ?? '');
+  if (!Number.isInteger(classNo) || !Number.isInteger(numberNo)) {
+    return { ok: false, message: '반/번호를 숫자로 입력해 주세요.' };
+  }
+  if (classNo < CLASS_MIN || classNo > CLASS_MAX) {
+    return { ok: false, message: '반은 1~8 사이만 입력할 수 있습니다.' };
+  }
+  if (numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) {
+    return { ok: false, message: '번호는 1~35 사이만 입력할 수 있습니다.' };
+  }
+  const code = `${classNo}-${String(numberNo).padStart(2, '0')}`;
+  return { ok: true, classNo, numberNo, code, label: `${classNo}반 ${numberNo}번` };
+}
+
+function fillInputsFromCode(code) {
+  const m = code && code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return false;
+  const classNo = Number(m[1]);
+  const numberNo = Number(m[2]);
+  if (classNo < CLASS_MIN || classNo > CLASS_MAX || numberNo < NUMBER_MIN || numberNo > NUMBER_MAX) return false;
+  if (classInput) classInput.value = String(classNo);
+  if (numberInput) numberInput.value = String(numberNo);
+  return true;
+}
+
+
 
 async function saveCode() {
-  const code = codeInput.value.trim();
-  if (code === MASTER_CODE) {
-    localStorage.setItem(ACCESS_CODE_KEY, code);
+  if ((classInput?.value || '').trim().toLowerCase() === MASTER_CODE) {
+    localStorage.setItem(ACCESS_CODE_KEY, MASTER_CODE);
     localStorage.setItem(ACCESS_USER_KEY, '마스터 코드');
     codeMsg.textContent = '마스터 코드 저장 완료';
     return true;
   }
-  if (!code || !VALID_CODES[code]) {
-    codeMsg.textContent = '26-10201~26-10232 또는 마스터코드만 사용할 수 있습니다.';
+  const parsed = parseClassNumberInput();
+  if (!parsed.ok) {
+    codeMsg.textContent = parsed.message;
     return false;
   }
-
-  const deviceId = getOrCreateDeviceId();
-  try {
-    let result = await bindCodeToDevice(code, deviceId, false);
-    if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
-      const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
-      if (!confirmed) {
-        codeMsg.textContent = '초기화가 취소되었습니다.';
-        return false;
-      }
-      result = await bindCodeToDevice(code, deviceId, true);
-    }
-    if (!result?.ok) {
-      codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
-      return false;
-    }
-    localStorage.setItem(ACCESS_CODE_KEY, code);
-    localStorage.setItem(ACCESS_USER_KEY, VALID_CODES[code]);
-    codeMsg.textContent = `${VALID_CODES[code]} 코드 저장 완료 (기기 초기화 반영)`;
-    return true;
-  } catch (_) {
-    codeMsg.textContent = '서버 연결 실패: 1인 1코드 인증을 위해 서버가 필요합니다.';
-    return false;
-  }
+  const code = parsed.code;
+  localStorage.setItem(ACCESS_CODE_KEY, code);
+  localStorage.setItem(ACCESS_USER_KEY, parsed.label);
+  codeMsg.textContent = `${parsed.label} 코드 저장 완료 (로컬 저장)`;
+  return true;
 }
 
 async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (code === MASTER_CODE) return true;
-  if (!code || !VALID_CODES[code]) return false;
-  const deviceId = getOrCreateDeviceId();
-  try {
-    const result = await verifyCodeOnDevice(code, deviceId);
-    return Boolean(result?.ok && result?.valid);
-  } catch (_) {
-    return false;
-  }
+  if (!code || !fillInputsFromCode(code)) return false;
+  return true;
 }
 
 function loadCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (code === MASTER_CODE) {
-    codeInput.value = code;
+    if (classInput) classInput.value = code;
+    if (numberInput) numberInput.value = '';
     codeMsg.textContent = '마스터 코드가 등록되어 있습니다.';
     return;
   }
-  if (code && VALID_CODES[code]) {
-    codeInput.value = code;
-    codeMsg.textContent = `${VALID_CODES[code]} 코드가 등록되어 있습니다.`;
+  if (code && fillInputsFromCode(code)) {
+    const classNo = Number(classInput?.value || 0);
+    const numberNo = Number(numberInput?.value || 0);
+    codeMsg.textContent = `${classNo}반 ${numberNo}번 코드가 등록되어 있습니다.`;
   }
 }
 
@@ -173,12 +126,13 @@ typeTo(line1, FIRST_FULL, 900);
 setTimeout(() => { freeze(line1); typeTo(line2, SECOND_FULL, 850); }, 1100);
 setTimeout(() => { freeze(line2); }, 2100);
 setTimeout(() => { reduceFirstLineToShim(); removeServiceFromSecondLine(); }, 3600);
-setTimeout(() => { document.querySelector('.hero')?.classList.add('collapse-lines'); showFinalMergedLine(); }, 5200);
+setTimeout(() => { morphIntoFinalLine(); }, 5200);
 
 getOrCreateDeviceId();
 loadCode();
 codeSaveBtn?.addEventListener('click', () => { saveCode(); });
-codeInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveCode(); });
+classInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveCode(); });
+numberInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveCode(); });
 startBtn?.addEventListener('click', async (e) => {
   if (await hasValidCodeForThisDevice()) return;
   e.preventDefault();
