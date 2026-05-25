@@ -104,9 +104,17 @@ function fillInputsFromCode(code) {
 }
 
 function buildServerCodeCandidates(classNo, numberNo) {
-  const modern = `${classNo}-${String(numberNo).padStart(2, '0')}`;
-  const legacy = `26-10${classNo}${String(numberNo).padStart(2, '0')}`;
-  return [modern, legacy];
+  const number2 = String(numberNo).padStart(2, '0');
+  const class2 = String(classNo).padStart(2, '0');
+  const raw = [
+    `${classNo}-${number2}`,
+    `${classNo}-${numberNo}`,
+    `26-10${classNo}${number2}`,
+    `26-10${classNo}${numberNo}`,
+    `26-10${class2}${number2}`,
+    `26-102${number2}`,
+  ];
+  return [...new Set(raw)];
 }
 
 function getStoredServerCode() {
@@ -132,10 +140,11 @@ async function saveCode() {
   const deviceId = getOrCreateDeviceId();
   try {
     let serverCode = candidates[0];
-    let result = await bindCodeToDevice(serverCode, deviceId, false);
-    if (!result?.ok) {
-      serverCode = candidates[1];
+    let result = { ok: false };
+    for (const candidate of candidates) {
+      serverCode = candidate;
       result = await bindCodeToDevice(serverCode, deviceId, false);
+      if (result?.ok || result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') break;
     }
     if (!result?.ok && result?.reason === 'ALREADY_BOUND_OTHER_DEVICE') {
       const confirmed = window.confirm('기존 등록 기기를 초기화하고, 현재 기기로 다시 등록할까요?');
@@ -146,7 +155,7 @@ async function saveCode() {
       result = await bindCodeToDevice(serverCode, deviceId, true);
     }
     if (!result?.ok) {
-      codeMsg.textContent = result?.message || '코드 등록에 실패했습니다.';
+      codeMsg.textContent = result?.message || `코드 등록에 실패했습니다. (${result?.reason || 'UNKNOWN'})`;
       return false;
     }
     localStorage.setItem(ACCESS_CODE_KEY, code);
