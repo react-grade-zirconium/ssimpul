@@ -12,6 +12,7 @@ removeUnexpectedBodyTextNodes();
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
+const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
@@ -39,12 +40,15 @@ async function verifyCodeOnDevice(code, deviceId) {
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   const serverCode = localStorage.getItem(ACCESS_SERVER_CODE_KEY) || code;
+  const bindMode = localStorage.getItem(ACCESS_BIND_MODE_KEY) || 'server';
   const deviceId = localStorage.getItem(DEVICE_ID_KEY);
   if (code === MASTER_CODE) return;
-  if (!code || !deviceId || !isValidClassNumberCode(code)) {
+  if (!code || !isValidClassNumberCode(code)) {
     window.location.replace('./index.html');
     return;
   }
+  if (bindMode === 'local') return;
+  if (!deviceId) { window.location.replace('./index.html'); return; }
   try {
     const result = await verifyCodeOnDevice(serverCode, deviceId);
     if (result?.ok && result?.valid) return;

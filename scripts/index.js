@@ -10,6 +10,7 @@ const startBtn = document.getElementById('startStudyBtn');
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
 const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
+const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
@@ -126,6 +127,7 @@ async function saveCode() {
   if ((classInput?.value || '').trim().toLowerCase() === MASTER_CODE) {
     localStorage.setItem(ACCESS_CODE_KEY, MASTER_CODE);
     localStorage.setItem(ACCESS_USER_KEY, '마스터 코드');
+    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
     codeMsg.textContent = '마스터 코드 저장 완료';
     return true;
   }
@@ -157,17 +159,30 @@ async function saveCode() {
     if (!result?.ok) {
       const reason = result?.reason || 'UNKNOWN';
       const baseMessage = result?.message || '코드 등록에 실패했습니다.';
+      if (reason === 'BIND_FAILED' || reason === 'UNKNOWN') {
+        localStorage.setItem(ACCESS_CODE_KEY, code);
+        localStorage.setItem(ACCESS_USER_KEY, parsed.label);
+        localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
+        localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
+        codeMsg.textContent = `서버 등록 실패(${reason})로 로컬 모드 저장: ${parsed.label}`;
+        return true;
+      }
       codeMsg.textContent = `${baseMessage} [reason: ${reason}]`;
       return false;
     }
     localStorage.setItem(ACCESS_CODE_KEY, code);
     localStorage.setItem(ACCESS_SERVER_CODE_KEY, serverCode);
+    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'server');
     localStorage.setItem(ACCESS_USER_KEY, parsed.label);
     codeMsg.textContent = `${parsed.label} 코드 저장 완료 (기기 초기화 반영)`;
     return true;
   } catch (_) {
-    codeMsg.textContent = '서버 연결 실패: 1인 1코드 인증을 위해 서버가 필요합니다.';
-    return false;
+    localStorage.setItem(ACCESS_CODE_KEY, code);
+    localStorage.setItem(ACCESS_USER_KEY, parsed.label);
+    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
+    localStorage.removeItem(ACCESS_SERVER_CODE_KEY);
+    codeMsg.textContent = `서버 연결 실패로 로컬 모드 저장: ${parsed.label}`;
+    return true;
   }
 }
 
@@ -175,6 +190,8 @@ async function hasValidCodeForThisDevice() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
   if (code === MASTER_CODE) return true;
   if (!code || !fillInputsFromCode(code)) return false;
+  const bindMode = localStorage.getItem(ACCESS_BIND_MODE_KEY) || 'server';
+  if (bindMode === 'local') return true;
   const serverCode = getStoredServerCode();
   const deviceId = getOrCreateDeviceId();
   try {
