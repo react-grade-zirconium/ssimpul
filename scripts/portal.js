@@ -11,44 +11,24 @@ removeUnexpectedBodyTextNodes();
 
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
+const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
+const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 
 const DEVICE_ID_KEY = 'studymax_device_id';
 const ACCESS_BIND_API = '/api/access-bind';
 const MASTER_CODE = 'simpul';
-const VALID_CODES = {
-  '26-10201': '학생 26-10201',
-  '26-10202': '학생 26-10202',
-  '26-10203': '학생 26-10203',
-  '26-10204': '학생 26-10204',
-  '26-10205': '학생 26-10205',
-  '26-10206': '학생 26-10206',
-  '26-10207': '학생 26-10207',
-  '26-10208': '학생 26-10208',
-  '26-10209': '학생 26-10209',
-  '26-10210': '학생 26-10210',
-  '26-10211': '학생 26-10211',
-  '26-10212': '학생 26-10212',
-  '26-10213': '학생 26-10213',
-  '26-10214': '학생 26-10214',
-  '26-10215': '학생 26-10215',
-  '26-10216': '학생 26-10216',
-  '26-10217': '학생 26-10217',
-  '26-10218': '학생 26-10218',
-  '26-10219': '학생 26-10219',
-  '26-10220': '학생 26-10220',
-  '26-10221': '학생 26-10221',
-  '26-10222': '학생 26-10222',
-  '26-10223': '학생 26-10223',
-  '26-10224': '학생 26-10224',
-  '26-10225': '학생 26-10225',
-  '26-10226': '학생 26-10226',
-  '26-10227': '학생 26-10227',
-  '26-10228': '학생 26-10228',
-  '26-10229': '학생 26-10229',
-  '26-10230': '학생 26-10230',
-  '26-10231': '학생 26-10231',
-  '26-10232': '학생 26-10232',
-};
+const CLASS_MIN = 1;
+const CLASS_MAX = 8;
+const NUMBER_MIN = 1;
+const NUMBER_MAX = 35;
+
+function isValidClassNumberCode(code) {
+  const m = code && code.match(/^(\d+)-(\d{2})$/);
+  if (!m) return false;
+  const classNo = Number(m[1]);
+  const numberNo = Number(m[2]);
+  return Number.isInteger(classNo) && Number.isInteger(numberNo) && classNo >= CLASS_MIN && classNo <= CLASS_MAX && numberNo >= NUMBER_MIN && numberNo <= NUMBER_MAX;
+}
 
 async function verifyCodeOnDevice(code, deviceId) {
   const query = new URLSearchParams({ code, deviceId }).toString();
@@ -59,14 +39,18 @@ async function verifyCodeOnDevice(code, deviceId) {
 
 async function enforceAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY);
+  const serverCode = localStorage.getItem(ACCESS_SERVER_CODE_KEY) || code;
+  const bindMode = localStorage.getItem(ACCESS_BIND_MODE_KEY) || 'server';
   const deviceId = localStorage.getItem(DEVICE_ID_KEY);
   if (code === MASTER_CODE) return;
-  if (!code || !deviceId || !VALID_CODES[code]) {
+  if (!code || !isValidClassNumberCode(code)) {
     window.location.replace('./index.html');
     return;
   }
+  if (bindMode === 'local') return;
+  if (!deviceId) { window.location.replace('./index.html'); return; }
   try {
-    const result = await verifyCodeOnDevice(code, deviceId);
+    const result = await verifyCodeOnDevice(serverCode, deviceId);
     if (result?.ok && result?.valid) return;
     window.location.replace('./index.html');
   } catch (_) {
