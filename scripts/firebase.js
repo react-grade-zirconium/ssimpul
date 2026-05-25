@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBgIrOjuh4VV0q4oeEA40N_wiKvSBlAJjc",
@@ -13,6 +13,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-isSupported().then((ok)=>{ if (ok) getAnalytics(app); }).catch(()=>{});
-window.simpulFirebase = { auth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut };
+export const auth = getAuth(app);
+
+isSupported().then((ok) => {
+  if (ok) getAnalytics(app);
+}).catch(() => {});
