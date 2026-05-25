@@ -44,7 +44,7 @@ function typeTo(el, text, duration = 900) {
 }
 function freeze(el) { el.classList.remove('typing'); el.style.transition = 'none'; el.style.maxWidth = 'none'; el.style.borderRight = 'none'; }
 function reduceFirstLineToShim() { line1.innerHTML = '<span id="shimCore" class="shim-core morph-piece">심</span><span id="fadeName" class="fade-name">규원·최시원의</span>'; }
-function removeServiceFromSecondLine() { line2.innerHTML = '<span id="leftKeep" class="left-keep morph-piece">풀</span><span id="fadeService" class="fade-service">서비스</span><span id="rightKeep" class="right-keep morph-piece"> 스터디</span>'; }
+function removeServiceFromSecondLine() { line2.innerHTML = '<span id="leftKeep" class="left-keep morph-piece">풀</span><span id="fadeService" class="fade-service">서비스</span><span class="line-gap" aria-hidden="true">&nbsp;</span><span id="rightKeep" class="right-keep morph-piece">스터디</span>'; }
 function showFinalMergedLine() { finalLine.textContent = FINAL_TEXT; finalLine.classList.add('show-final'); }
 function morphIntoFinalLine() {
   document.querySelector('.hero')?.classList.add('collapse-lines');
