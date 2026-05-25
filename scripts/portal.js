@@ -222,19 +222,25 @@ function initGlobalInk() {
   const penBtn = document.getElementById('inkPenBtn');
   const eraserBtn = document.getElementById('inkEraserBtn');
   const highlighterBtn = document.getElementById('inkHighlighterBtn');
+  const undoBtn = document.getElementById('inkUndoBtn');
+  const redoBtn = document.getElementById('inkRedoBtn');
   const clearBtn = document.getElementById('inkClearBtn');
   const saveBtn = document.getElementById('inkSaveBtn');
   const sizeInput = document.getElementById('inkSizeRange');
   const colorInput = document.getElementById('inkColorInput');
   const msg = document.getElementById('inkMsg');
-  if (!canvas || !toolbar || !toggleBtn || !penBtn || !eraserBtn || !highlighterBtn || !clearBtn || !saveBtn || !sizeInput || !colorInput || !msg) return;
+  if (!canvas || !toolbar || !toggleBtn || !penBtn || !eraserBtn || !highlighterBtn || !undoBtn || !redoBtn || !clearBtn || !saveBtn || !sizeInput || !colorInput || !msg) return;
 
+  const INK_STROKES_KEY = 'studymax_ink_strokes_v1';
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   let drawing = false;
   let mode = 'pen';
   let penSize = Number(sizeInput.value || 3);
   let penColor = colorInput.value || '#0f172a';
+  let currentStroke = null;
+  let strokes = [];
+  let redoStack = [];
 
   initToolbarDrag(toolbar);
 
@@ -245,90 +251,113 @@ function initGlobalInk() {
     eraserBtn.classList.toggle('active', next === 'eraser');
     highlighterBtn.classList.toggle('active', next === 'highlighter');
   }
-
-  function toCanvasXY(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-    };
+  function updateUndoRedoUI() {
+    undoBtn.disabled = strokes.length === 0;
+    redoBtn.disabled = redoStack.length === 0;
   }
-
-  function clearInk() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function toDocumentXY(e) {
+    return { x: e.clientX + window.scrollX, y: e.clientY + window.scrollY };
   }
-
   function resizeCanvas() {
-    const prev = document.createElement('canvas');
-    prev.width = canvas.width || 1;
-    prev.height = canvas.height || 1;
-    prev.getContext('2d').drawImage(canvas, 0, 0);
-
     const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(window.innerWidth * ratio);
-    canvas.height = Math.floor(window.innerHeight * ratio);
-
+    const doc = document.documentElement;
+    const w = Math.max(doc.scrollWidth, window.innerWidth);
+    const h = Math.max(doc.scrollHeight, window.innerHeight);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    canvas.width = Math.floor(w * ratio);
+    canvas.height = Math.floor(h * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    drawAll();
+  }
+  function applyStrokeStyle(stroke) {
+    if (stroke.mode === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = Math.max(10, stroke.size * 3);
+    } else if (stroke.mode === 'highlighter') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 0.28;
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = Math.max(8, stroke.size * 2.2);
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.size;
+    }
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.drawImage(prev, 0, 0, canvas.width, canvas.height);
   }
-
+  function drawStroke(stroke) {
+    if (!stroke.points || stroke.points.length < 2) return;
+    applyStrokeStyle(stroke);
+    ctx.beginPath();
+    ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    for (let i = 1; i < stroke.points.length; i++) ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+    ctx.stroke();
+    ctx.closePath();
+  }
+  function drawAll() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const s of strokes) drawStroke(s);
+  }
+  function persistStrokes() {
+    localStorage.setItem(INK_STROKES_KEY, JSON.stringify(strokes));
+  }
+  function loadStrokes() {
+    try {
+      const raw = localStorage.getItem(INK_STROKES_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) strokes = parsed;
+    } catch (_) { strokes = []; }
+  }
   function beginStroke(e) {
     if (!document.body.classList.contains('ink-on')) return;
     if (e.target.closest && e.target.closest('#inkToolbar')) return;
     drawing = true;
-    const p = toCanvasXY(e);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-
-    if (mode === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.globalAlpha = 1;
-      ctx.lineWidth = Math.max(10, penSize * 3) * (window.devicePixelRatio || 1);
-    } else if (mode === 'highlighter') {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 0.28;
-      ctx.strokeStyle = penColor;
-      ctx.lineWidth = Math.max(8, penSize * 2.2) * (window.devicePixelRatio || 1);
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = penColor;
-      ctx.lineWidth = penSize * (window.devicePixelRatio || 1);
-    }
+    currentStroke = { mode, size: penSize, color: penColor, points: [] };
+    currentStroke.points.push(toDocumentXY(e));
     e.preventDefault();
   }
-
   function moveStroke(e) {
-    if (!drawing) return;
-    const p = toCanvasXY(e);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
+    if (!drawing || !currentStroke) return;
+    currentStroke.points.push(toDocumentXY(e));
+    drawAll();
+    drawStroke(currentStroke);
     e.preventDefault();
   }
-
-  function endStroke() { if (!drawing) return; drawing = false; ctx.closePath(); }
-
-  function saveInk() {
-    try {
-      localStorage.setItem(INK_STORAGE_KEY, canvas.toDataURL('image/png'));
-      setMsg('손글씨 저장 완료');
-    } catch (_) {
-      setMsg('저장 실패');
+  function endStroke() {
+    if (!drawing || !currentStroke) return;
+    drawing = false;
+    if (currentStroke.points.length > 1) {
+      strokes.push(currentStroke);
+      if (strokes.length > 400) strokes = strokes.slice(strokes.length - 400);
+      redoStack = [];
+            persistStrokes();
+      updateUndoRedoUI();
     }
+    currentStroke = null;
   }
-
-  function loadInk() {
-    const data = localStorage.getItem(INK_STORAGE_KEY);
-    if (!data) return;
-    const img = new Image();
-    img.onload = () => {
-      clearInk();
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
-    img.src = data;
+  function clearInk() {
+    strokes = [];
+    redoStack = [];
+    drawAll();
+    persistStrokes();
+    updateUndoRedoUI();
+  }
+  function saveInk() { persistStrokes(); setMsg('손글씨 저장 완료'); }
+  function undoInk() {
+    if (!strokes.length) return;
+    redoStack.push(strokes.pop());
+    if (redoStack.length > 10) redoStack = redoStack.slice(redoStack.length - 10);
+    drawAll(); persistStrokes(); updateUndoRedoUI();
+  }
+  function redoInk() {
+    if (!redoStack.length) return;
+    strokes.push(redoStack.pop());
+    drawAll(); persistStrokes(); updateUndoRedoUI();
   }
 
   toggleBtn.addEventListener('click', () => {
@@ -341,17 +370,19 @@ function initGlobalInk() {
   penBtn.addEventListener('click', () => setTool('pen'));
   eraserBtn.addEventListener('click', () => setTool('eraser'));
   highlighterBtn.addEventListener('click', () => setTool('highlighter'));
+  undoBtn.addEventListener('click', undoInk);
+  redoBtn.addEventListener('click', redoInk);
   sizeInput.addEventListener('input', () => { penSize = Number(sizeInput.value); });
   colorInput.addEventListener('input', () => { penColor = colorInput.value; });
   clearBtn.addEventListener('click', () => { clearInk(); setMsg('전체 지움'); });
   saveBtn.addEventListener('click', saveInk);
-
   canvas.addEventListener('pointerdown', beginStroke, { passive: false });
   canvas.addEventListener('pointermove', moveStroke, { passive: false });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => canvas.addEventListener(evt, endStroke));
 
+  loadStrokes();
   resizeCanvas();
-  loadInk();
+  updateUndoRedoUI();
   window.addEventListener('resize', resizeCanvas);
 }
 

@@ -36,9 +36,10 @@ iframe{width:100%;height:100%;border:0;background:#fff}
 .ink-size-wrap input[type="range"]{width:90px}
 .ink-color-wrap input[type="color"]{width:28px;height:28px;border:none;background:transparent;padding:0}
 .ink-toolbar button.active{background:#2563eb;color:#fff;border-color:#1d4ed8}
+.ink-toolbar button:disabled{opacity:.45;cursor:not-allowed}
 .ink-grip{display:inline-flex;align-items:center;justify-content:center;border:1px dashed #c5d1e3;border-radius:8px;padding:6px 8px;color:#64748b;font-size:.82rem;cursor:grab;background:#f8fbff}
 .ink-msg{font-size:.82rem;color:#2563eb;min-width:90px}
-#inkLayer{position:fixed;inset:0;z-index:1100;pointer-events:none;touch-action:none}
+#inkLayer{position:absolute;left:0;top:0;z-index:1100;pointer-events:none;touch-action:none}
 body.ink-on #inkLayer{pointer-events:auto;cursor:crosshair}
 .profile-modal{position:fixed;inset:0;background:rgba(2,6,23,.68);display:none;align-items:center;justify-content:center;z-index:1400}
 .profile-modal.show{display:flex}
