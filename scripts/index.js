@@ -9,6 +9,8 @@ const startBtn = document.getElementById('startStudyBtn');
 
 const ACCESS_CODE_KEY = 'studymax_access_code';
 const ACCESS_USER_KEY = 'studymax_access_user';
+const ACCESS_SERVER_CODE_KEY = 'studymax_access_server_code';
+const ACCESS_BIND_MODE_KEY = 'studymax_access_bind_mode';
 const DEVICE_ID_KEY = 'studymax_device_id';
 const MASTER_CODE = 'simpul';
 
@@ -83,6 +85,7 @@ async function saveCode() {
   if ((classInput?.value || '').trim().toLowerCase() === MASTER_CODE) {
     localStorage.setItem(ACCESS_CODE_KEY, MASTER_CODE);
     localStorage.setItem(ACCESS_USER_KEY, '마스터 코드');
+    localStorage.setItem(ACCESS_BIND_MODE_KEY, 'local');
     codeMsg.textContent = '마스터 코드 저장 완료';
     return true;
   }
