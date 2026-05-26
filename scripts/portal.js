@@ -58,6 +58,8 @@ const aiAnalyzeFrameBtn = document.getElementById('aiAnalyzeFrameBtn');
 const aiMsgEl = document.getElementById('aiMsg');
 const aiSummaryEl = document.getElementById('aiSummary');
 const aiQuestionListEl = document.getElementById('aiQuestionList');
+const aiApiUrlInput = document.getElementById('aiApiUrlInput');
+const aiApiSaveBtn = document.getElementById('aiApiSaveBtn');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
@@ -69,6 +71,7 @@ const PROFILE_NUMBER_KEY = 'studymax_profile_number';
 const PROFILE_PHOTO_KEY = 'studymax_profile_photo';
 const AI_CONTENT_BANK_KEY = 'studymax_ai_content_bank_v1';
 const AI_QUESTIONS_KEY = 'studymax_ai_questions_v1';
+const AI_API_URL_KEY = 'studymax_ai_api_url_v1';
 
 function getClassNumberFromAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY) || '';
@@ -637,14 +640,44 @@ function extractTextFromCurrentFrame() {
   return (bodyText || '').replace(/\s+/g, ' ').trim();
 }
 
-function runAiLearning(raw) {
-  const summary = summarizeForAi(raw);
-  const questions = buildQuestionsFromText(raw);
+async function requestAiFromApi(raw) {
+  const apiUrl = (localStorage.getItem(AI_API_URL_KEY) || `${window.location.origin}/api/ai/analyze`).trim();
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: raw, lang: 'ko', mode: 'study_coach' })
+  });
+  if (!response.ok) throw new Error(`API ${response.status}`);
+  return response.json();
+}
+
+function persistAiResult(summaryPoints, questions, sourceLength) {
   const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
-  bank.push({ date: new Date().toISOString().slice(0, 10), length: summary.totalLength, points: summary.points });
+  bank.push({ date: new Date().toISOString().slice(0, 10), length: sourceLength, points: summaryPoints });
   localStorage.setItem(AI_CONTENT_BANK_KEY, JSON.stringify(bank.slice(-200)));
   localStorage.setItem(AI_QUESTIONS_KEY, JSON.stringify(questions));
-  aiMsgEl.textContent = `자동 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+}
+
+async function runAiLearning(raw) {
+  try {
+    const apiResult = await requestAiFromApi(raw);
+    if (apiResult && Array.isArray(apiResult.questions)) {
+      const points = Array.isArray(apiResult.summary_points) ? apiResult.summary_points.slice(0, 3) : [];
+      persistAiResult(points, apiResult.questions, raw.length);
+      aiMsgEl.textContent = `API 학습 완료: 핵심 포인트 ${points.length}개, 문제 ${apiResult.questions.length}개 생성`;
+      aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
+  renderAiCoach();
+      return;
+    }
+  } catch (e) {
+    aiMsgEl.textContent = `API 호출 실패 (${e.message}). 로컬 모드로 전환합니다.`;
+  }
+
+  const summary = summarizeForAi(raw);
+  const questions = buildQuestionsFromText(raw);
+  persistAiResult(summary.points, questions, summary.totalLength);
+  aiMsgEl.textContent = `로컬 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+  aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
   renderAiCoach();
 }
 
@@ -690,7 +723,8 @@ function renderAiCoach() {
 }
 
 function initAiCoach() {
-  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl || !aiAnalyzeFrameBtn) return;
+  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl || !aiAnalyzeFrameBtn || !aiApiUrlInput || !aiApiSaveBtn) return;
+  aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
   renderAiCoach();
   aiAnalyzeBtn.addEventListener('click', () => {
     const raw = (aiSourceInput.value || '').trim();
@@ -703,6 +737,18 @@ function initAiCoach() {
     const raw = extractTextFromCurrentFrame();
     if (!raw) { aiMsgEl.textContent = '현재 학습 페이지에서 분석할 텍스트를 찾지 못했습니다.'; return; }
     runAiLearning(raw);
+  });
+
+  aiApiSaveBtn.addEventListener('click', () => {
+    const url = (aiApiUrlInput.value || '').trim();
+    if (!url) {
+      localStorage.removeItem(AI_API_URL_KEY);
+      aiMsgEl.textContent = 'API 연결이 해제되었습니다. (로컬 모드)';
+      return;
+    }
+    try { new URL(url); } catch (_) { aiMsgEl.textContent = '유효한 API URL을 입력해 주세요.'; return; }
+    localStorage.setItem(AI_API_URL_KEY, url);
+    aiMsgEl.textContent = 'AI API URL이 저장되었습니다.';
   });
 }
 
