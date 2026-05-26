@@ -395,6 +395,183 @@ if (memoSaveBtn) memoSaveBtn.addEventListener('click', saveMemo);
 if (memoInput) memoInput.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveMemo(); });
 initProfileModal();
 initGlobalInk();
+initMusicWidget();
+
+
+function initMusicWidget() {
+  const urlInput = document.getElementById('musicUrlInput');
+  const addBtn = document.getElementById('musicAddBtn');
+  const playBtn = document.getElementById('musicPlayBtn');
+  const prevBtn = document.getElementById('musicPrevBtn');
+  const nextBtn = document.getElementById('musicNextBtn');
+  const listEl = document.getElementById('musicPlaylist');
+  const msgEl = document.getElementById('musicMsg');
+  const audio = document.getElementById('musicAudio');
+  const widget = document.getElementById('musicWidget');
+  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget) return;
+  initMusicWidgetDrag(widget);
+
+  const MUSIC_LIST_KEY = 'studymax_music_playlist_v1';
+  const MUSIC_INDEX_KEY = 'studymax_music_playlist_index_v1';
+  let playlist = [];
+  let currentIndex = -1;
+
+  function setMsg(text) {
+    msgEl.textContent = text;
+    if (!text) return;
+    setTimeout(() => { if (msgEl.textContent === text) msgEl.textContent = ''; }, 1800);
+  }
+
+  function persist() {
+    localStorage.setItem(MUSIC_LIST_KEY, JSON.stringify(playlist));
+    localStorage.setItem(MUSIC_INDEX_KEY, String(currentIndex));
+  }
+
+  function loadSaved() {
+    try {
+      const raw = localStorage.getItem(MUSIC_LIST_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) playlist = parsed.filter((x) => typeof x === 'string' && x.trim());
+      const idx = Number(localStorage.getItem(MUSIC_INDEX_KEY));
+      currentIndex = Number.isInteger(idx) && idx >= 0 && idx < playlist.length ? idx : (playlist.length ? 0 : -1);
+    } catch (_) {
+      playlist = [];
+      currentIndex = -1;
+    }
+  }
+
+  function labelFromUrl(url) {
+    try {
+      const u = new URL(url);
+      return decodeURIComponent(u.pathname.split('/').filter(Boolean).pop() || u.hostname);
+    } catch (_) {
+      return url;
+    }
+  }
+
+  function renderList() {
+    listEl.innerHTML = '';
+    playlist.forEach((url, i) => {
+      const li = document.createElement('li');
+      li.textContent = `${i + 1}. ${labelFromUrl(url)}`;
+      li.classList.toggle('active', i === currentIndex);
+      li.title = url;
+      li.addEventListener('click', () => {
+        currentIndex = i;
+        loadCurrent(true);
+      });
+      listEl.appendChild(li);
+    });
+  }
+
+  function loadCurrent(autoplay = false) {
+    if (currentIndex < 0 || currentIndex >= playlist.length) {
+      audio.removeAttribute('src');
+      playBtn.textContent = '▶️ 재생';
+      renderList();
+      persist();
+      return;
+    }
+    audio.src = playlist[currentIndex];
+    audio.load();
+    renderList();
+    persist();
+    if (autoplay) {
+      audio.play().then(() => {
+        playBtn.textContent = '⏸ 일시정지';
+      }).catch(() => {
+        setMsg('브라우저 정책으로 자동 재생이 차단될 수 있어요. 재생 버튼을 눌러주세요.');
+      });
+    }
+  }
+
+  function addUrl() {
+    const url = (urlInput.value || '').trim();
+    if (!url) { setMsg('URL을 입력해 주세요.'); return; }
+    try { new URL(url); } catch (_) { setMsg('유효한 URL 형식이 아닙니다.'); return; }
+    playlist.push(url);
+    if (currentIndex === -1) currentIndex = 0;
+    urlInput.value = '';
+    loadCurrent(false);
+    setMsg('재생목록에 추가되었습니다.');
+  }
+
+  function move(delta) {
+    if (!playlist.length) { setMsg('재생목록이 비어 있습니다.'); return; }
+    currentIndex = (currentIndex + delta + playlist.length) % playlist.length;
+    loadCurrent(true);
+  }
+
+  addBtn.addEventListener('click', addUrl);
+  urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addUrl(); });
+  playBtn.addEventListener('click', () => {
+    if (!playlist.length) { setMsg('먼저 URL을 추가해 주세요.'); return; }
+    if (!audio.src) loadCurrent(false);
+    if (audio.paused) {
+      audio.play().then(() => { playBtn.textContent = '⏸ 일시정지'; }).catch(() => setMsg('재생할 수 없는 URL입니다. 오디오 파일 URL인지 확인해 주세요.'));
+    } else {
+      audio.pause();
+      playBtn.textContent = '▶️ 재생';
+    }
+  });
+  prevBtn.addEventListener('click', () => move(-1));
+  nextBtn.addEventListener('click', () => move(1));
+  audio.addEventListener('ended', () => move(1));
+  audio.addEventListener('play', () => { playBtn.textContent = '⏸ 일시정지'; });
+  audio.addEventListener('pause', () => { playBtn.textContent = '▶️ 재생'; });
+  audio.addEventListener('error', () => { setMsg('오디오를 불러오지 못했습니다. URL을 확인해 주세요.'); });
+
+  loadSaved();
+  renderList();
+  if (currentIndex >= 0) loadCurrent(false);
+}
+
+
+function initMusicWidgetDrag(widget) {
+  const grip = document.getElementById('musicGrip');
+  if (!grip || !widget) return;
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  const move = (e) => {
+    if (!dragging) return;
+    const nx = e.clientX - offsetX;
+    const ny = e.clientY - offsetY;
+    const maxX = window.innerWidth - widget.offsetWidth;
+    const maxY = window.innerHeight - widget.offsetHeight;
+    widget.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
+    widget.style.top = `${Math.max(0, Math.min(ny, maxY))}px`;
+    e.preventDefault();
+  };
+
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    widget.classList.remove('dragging');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+    try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+
+  grip.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    widget.classList.add('dragging');
+    const rect = widget.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    widget.style.left = `${rect.left}px`;
+    widget.style.top = `${rect.top}px`;
+    widget.style.right = 'auto';
+    widget.style.bottom = 'auto';
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    e.preventDefault();
+  }, { passive: false });
+}
 
 window.showDashboard = showDashboard;
 window.showSubject = showSubject;
