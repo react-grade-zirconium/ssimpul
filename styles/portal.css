@@ -66,3 +66,4 @@ body.ink-on #inkLayer{pointer-events:auto;cursor:crosshair}
 .music-playlist li.active{color:#1d4ed8;font-weight:700}
 .music-msg{font-size:.78rem;color:#2563eb;min-height:1.2em}
 @media (max-width:940px){.music-widget{position:static;width:100%;margin-bottom:12px}}
+.logo-link{display:block;text-decoration:none;color:inherit}
