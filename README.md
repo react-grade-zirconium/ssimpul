@@ -1,4 +1,4 @@
-# ssimpul
+# ssimpul.
 
 ## Local run with AI API
 
