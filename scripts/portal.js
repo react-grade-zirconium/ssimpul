@@ -409,19 +409,22 @@ function initMusicWidget() {
   const urlInput = document.getElementById('musicUrlInput');
   const addBtn = document.getElementById('musicAddBtn');
   const playBtn = document.getElementById('musicPlayBtn');
+  const minBtn = document.getElementById('musicMinBtn');
   const prevBtn = document.getElementById('musicPrevBtn');
   const nextBtn = document.getElementById('musicNextBtn');
   const listEl = document.getElementById('musicPlaylist');
   const msgEl = document.getElementById('musicMsg');
   const audio = document.getElementById('musicAudio');
+  const youtubeFrame = document.getElementById('musicYoutubeFrame');
   const widget = document.getElementById('musicWidget');
-  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget) return;
+  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget || !minBtn || !youtubeFrame) return;
   initMusicWidgetDrag(widget);
 
   const MUSIC_LIST_KEY = 'studymax_music_playlist_v1';
   const MUSIC_INDEX_KEY = 'studymax_music_playlist_index_v1';
   let playlist = [];
   let currentIndex = -1;
+  let currentMode = 'audio';
 
   function setMsg(text) {
     msgEl.textContent = text;
@@ -456,6 +459,24 @@ function initMusicWidget() {
     }
   }
 
+
+  function parseYoutubeId(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1) || '';
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v') || '';
+      return '';
+    } catch (_) { return ''; }
+  }
+  function stopYoutube() {
+    youtubeFrame.src = 'about:blank';
+    youtubeFrame.style.display = 'none';
+  }
+  function stopAudio() {
+    audio.pause();
+    audio.removeAttribute('src');
+  }
+
   function renderList() {
     listEl.innerHTML = '';
     playlist.forEach((url, i) => {
@@ -479,17 +500,27 @@ function initMusicWidget() {
       persist();
       return;
     }
-    audio.src = playlist[currentIndex];
-    audio.load();
+    const rawUrl = playlist[currentIndex];
+    const yid = parseYoutubeId(rawUrl);
+    if (yid) {
+      currentMode = 'youtube';
+      stopAudio();
+      youtubeFrame.style.display = 'block';
+      youtubeFrame.src = `https://www.youtube.com/embed/${yid}?autoplay=${autoplay ? 1 : 0}&rel=0`;
+      playBtn.textContent = autoplay ? '⏸ 일시정지' : '▶️ 재생';
+    } else {
+      currentMode = 'audio';
+      stopYoutube();
+      audio.src = rawUrl;
+      audio.load();
+      if (autoplay) {
+        audio.play().then(() => { playBtn.textContent = '⏸ 일시정지'; }).catch(() => {
+          setMsg('브라우저 정책으로 자동 재생이 차단될 수 있어요. 재생 버튼을 눌러주세요.');
+        });
+      }
+    }
     renderList();
     persist();
-    if (autoplay) {
-      audio.play().then(() => {
-        playBtn.textContent = '⏸ 일시정지';
-      }).catch(() => {
-        setMsg('브라우저 정책으로 자동 재생이 차단될 수 있어요. 재생 버튼을 눌러주세요.');
-      });
-    }
   }
 
   function addUrl() {
@@ -514,6 +545,14 @@ function initMusicWidget() {
   playBtn.addEventListener('click', () => {
     if (!playlist.length) { setMsg('먼저 URL을 추가해 주세요.'); return; }
     if (!audio.src) loadCurrent(false);
+    if (currentMode === 'youtube') {
+      const yid = parseYoutubeId(playlist[currentIndex] || '');
+      if (!yid) return;
+      const isPaused = playBtn.textContent.includes('재생');
+      youtubeFrame.src = `https://www.youtube.com/embed/${yid}?autoplay=${isPaused ? 1 : 0}&rel=0`;
+      playBtn.textContent = isPaused ? '⏸ 일시정지' : '▶️ 재생';
+      return;
+    }
     if (audio.paused) {
       audio.play().then(() => { playBtn.textContent = '⏸ 일시정지'; }).catch(() => setMsg('재생할 수 없는 URL입니다. 오디오 파일 URL인지 확인해 주세요.'));
     } else {
@@ -527,6 +566,13 @@ function initMusicWidget() {
   audio.addEventListener('play', () => { playBtn.textContent = '⏸ 일시정지'; });
   audio.addEventListener('pause', () => { playBtn.textContent = '▶️ 재생'; });
   audio.addEventListener('error', () => { setMsg('오디오를 불러오지 못했습니다. URL을 확인해 주세요.'); });
+
+  minBtn.addEventListener('click', () => {
+    widget.classList.toggle('minimized');
+    const minimized = widget.classList.contains('minimized');
+    minBtn.textContent = minimized ? '＋' : '－';
+    minBtn.title = minimized ? '펼치기' : '최소화';
+  });
 
   loadSaved();
   renderList();
