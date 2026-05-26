@@ -407,7 +407,9 @@ function initMusicWidget() {
   const listEl = document.getElementById('musicPlaylist');
   const msgEl = document.getElementById('musicMsg');
   const audio = document.getElementById('musicAudio');
-  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio) return;
+  const widget = document.getElementById('musicWidget');
+  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget) return;
+  initMusicWidgetDrag(widget);
 
   const MUSIC_LIST_KEY = 'studymax_music_playlist_v1';
   const MUSIC_INDEX_KEY = 'studymax_music_playlist_index_v1';
@@ -522,6 +524,53 @@ function initMusicWidget() {
   loadSaved();
   renderList();
   if (currentIndex >= 0) loadCurrent(false);
+}
+
+
+function initMusicWidgetDrag(widget) {
+  const grip = document.getElementById('musicGrip');
+  if (!grip || !widget) return;
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  const move = (e) => {
+    if (!dragging) return;
+    const nx = e.clientX - offsetX;
+    const ny = e.clientY - offsetY;
+    const maxX = window.innerWidth - widget.offsetWidth;
+    const maxY = window.innerHeight - widget.offsetHeight;
+    widget.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
+    widget.style.top = `${Math.max(0, Math.min(ny, maxY))}px`;
+    e.preventDefault();
+  };
+
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    widget.classList.remove('dragging');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+    try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+
+  grip.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    widget.classList.add('dragging');
+    const rect = widget.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    widget.style.left = `${rect.left}px`;
+    widget.style.top = `${rect.top}px`;
+    widget.style.right = 'auto';
+    widget.style.bottom = 'auto';
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    e.preventDefault();
+  }, { passive: false });
 }
 
 window.showDashboard = showDashboard;

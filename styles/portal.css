@@ -67,3 +67,7 @@ body.ink-on #inkLayer{pointer-events:auto;cursor:crosshair}
 .music-msg{font-size:.78rem;color:#2563eb;min-height:1.2em}
 @media (max-width:940px){.music-widget{position:static;width:100%;margin-bottom:12px}}
 .logo-link{display:block;text-decoration:none;color:inherit}
+
+.music-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.music-grip{display:inline-flex;align-items:center;justify-content:center;border:1px dashed #c5d1e3;border-radius:8px;padding:5px 8px;color:#64748b;font-size:.78rem;cursor:grab;background:#f8fbff;user-select:none}
+.music-widget.dragging{opacity:.92}
