@@ -6,7 +6,8 @@ on:
       - '**'
   pull_request:
     branches:
-      - '**'
+      - main
+      - work
   workflow_dispatch:
 
 permissions:
@@ -33,7 +34,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Validate frontend script syntax
+      - name: Validate frontend script syntax (index)
+        run: node --check scripts/index.js
+
+      - name: Validate frontend script syntax (portal)
         run: node --check scripts/portal.js
 
       - name: Validate server syntax
