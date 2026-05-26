@@ -414,6 +414,7 @@ function initMusicWidget() {
   const addBtn = document.getElementById('musicAddBtn');
   const playBtn = document.getElementById('musicPlayBtn');
   const minBtn = document.getElementById('musicMinBtn');
+  const dockToggleBtn = document.getElementById('musicDockToggle');
   const prevBtn = document.getElementById('musicPrevBtn');
   const nextBtn = document.getElementById('musicNextBtn');
   const listEl = document.getElementById('musicPlaylist');
@@ -421,7 +422,7 @@ function initMusicWidget() {
   const audio = document.getElementById('musicAudio');
   const youtubeFrame = document.getElementById('musicYoutubeFrame');
   const widget = document.getElementById('musicWidget');
-  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget || !minBtn || !youtubeFrame) return;
+  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget || !minBtn || !youtubeFrame || !dockToggleBtn) return;
   initMusicWidgetDrag(widget);
 
   const MUSIC_LIST_KEY = 'studymax_music_playlist_v1';
@@ -571,11 +572,20 @@ function initMusicWidget() {
   audio.addEventListener('pause', () => { playBtn.textContent = '▶️ 재생'; });
   audio.addEventListener('error', () => { setMsg('오디오를 불러오지 못했습니다. URL을 확인해 주세요.'); });
 
-  minBtn.addEventListener('click', () => {
-    widget.classList.toggle('minimized');
-    const minimized = widget.classList.contains('minimized');
-    minBtn.textContent = minimized ? '＋' : '－';
+  function setDockState(minimized) {
+    widget.classList.toggle('minimized', minimized);
     minBtn.title = minimized ? '펼치기' : '최소화';
+    dockToggleBtn.textContent = minimized ? '◀' : '▶';
+    dockToggleBtn.title = minimized ? '펼치기' : '숨기기';
+  }
+
+  minBtn.addEventListener('click', () => {
+    setDockState(true);
+  });
+
+  dockToggleBtn.addEventListener('click', () => {
+    const minimized = widget.classList.contains('minimized');
+    setDockState(!minimized);
   });
 
   loadSaved();
