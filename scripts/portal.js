@@ -60,6 +60,7 @@ const aiSummaryEl = document.getElementById('aiSummary');
 const aiQuestionListEl = document.getElementById('aiQuestionList');
 const aiApiUrlInput = document.getElementById('aiApiUrlInput');
 const aiApiSaveBtn = document.getElementById('aiApiSaveBtn');
+const aiQuizCardsEl = document.getElementById('aiQuizCards');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
@@ -677,6 +678,7 @@ async function runAiLearning(raw) {
       aiMsgEl.textContent = `API 학습 완료: 핵심 포인트 ${points.length}개, 문제 ${apiResult.questions.length}개 생성`;
       aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
   renderAiCoach();
+  renderAiQuizCards();
       return;
     }
   } catch (e) {
@@ -689,6 +691,7 @@ async function runAiLearning(raw) {
   aiMsgEl.textContent = `로컬 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
   aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
   renderAiCoach();
+  renderAiQuizCards();
 }
 
 function summarizeForAi(raw) {
@@ -732,10 +735,45 @@ function renderAiCoach() {
   }
 }
 
+function renderAiQuizCards() {
+  if (!aiQuizCardsEl) return;
+  const questions = JSON.parse(localStorage.getItem(AI_QUESTIONS_KEY) || '[]');
+  aiQuizCardsEl.innerHTML = '';
+  if (!Array.isArray(questions) || !questions.length) {
+    const empty = document.createElement('p');
+    empty.className = 'ai-sub';
+    empty.textContent = '아직 생성된 문제가 없습니다.';
+    aiQuizCardsEl.appendChild(empty);
+    return;
+  }
+  questions.forEach((q, idx) => {
+    const card = document.createElement('article');
+    card.className = 'ai-quiz-card';
+    const title = document.createElement('h4');
+    title.textContent = `문제 ${idx + 1}`;
+    const body = document.createElement('p');
+    body.textContent = String(q);
+    const answer = document.createElement('textarea');
+    answer.placeholder = '여기에 답안을 입력하세요.';
+    const checkBtn = document.createElement('button');
+    checkBtn.type = 'button';
+    checkBtn.textContent = '답안 저장';
+    const feedback = document.createElement('div');
+    feedback.className = 'ai-feedback';
+    checkBtn.addEventListener('click', () => {
+      const v = (answer.value || '').trim();
+      feedback.textContent = v ? '답안이 저장되었습니다. (자가점검용)' : '답안을 입력해 주세요.';
+    });
+    card.append(title, body, answer, checkBtn, feedback);
+    aiQuizCardsEl.appendChild(card);
+  });
+}
+
 function initAiCoach() {
   if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl || !aiAnalyzeFrameBtn || !aiApiUrlInput || !aiApiSaveBtn) return;
   aiApiUrlInput.value = localStorage.getItem(AI_API_URL_KEY) || '';
   renderAiCoach();
+  renderAiQuizCards();
   aiAnalyzeBtn.addEventListener('click', () => {
     const raw = (aiSourceInput.value || '').trim();
     if (!raw) { aiMsgEl.textContent = '학습 내용을 입력해 주세요.'; return; }
