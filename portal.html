@@ -10,7 +10,9 @@
 <body>
   <aside class="sidebar box">
     <div class="logo">
-      <img src="./assets/simpul-logo.png" alt="SIMPUL 로고" class="app-logo" onerror="this.style.display='none'; this.parentNode.textContent='SIMPUL STUDY';" />
+      <a href="./index.html" class="logo-link" aria-label="처음으로 돌아가기">
+        <img src="./assets/simpul-logo.png" alt="SIMPUL 로고" class="app-logo" onerror="this.style.display='none'; this.parentNode.textContent='SIMPUL STUDY';" />
+      </a>
     </div>
     <nav class="menu">
       <button class="active" onclick="showDashboard(this)">🏁 대시보드</button>
@@ -63,6 +65,24 @@
             <p id="goalMsg" class="goal-msg"></p>
           </article>
 
+
+          <article class="ai-coach box">
+            <h3>스마트 AI 학습 코치</h3>
+            <p class="ai-sub">과목 구분 없이 들어온 학습 내용을 자동 분석해서 문제와 학습 계획을 만듭니다.</p>
+            <textarea id="aiSourceInput" placeholder="여기에 학습 내용을 붙여넣으세요."></textarea>
+            <div class="ai-api-row">
+              <input id="aiApiUrlInput" type="url" placeholder="AI API URL (예: https://your-api.com/api/ai/analyze)" />
+              <button type="button" id="aiApiSaveBtn">API 저장</button>
+            </div>
+            <div class="ai-actions">
+              <button type="button" id="aiAnalyzeFrameBtn">현재 학습 페이지 자동 분석</button>
+              <button type="button" id="aiAnalyzeBtn">자동 학습 시작</button>
+            </div>
+            <p id="aiMsg" class="goal-msg"></p>
+            <div id="aiSummary" class="ai-summary"></div>
+            <ol id="aiQuestionList" class="ai-question-list"></ol>
+          </article>
+
           <article class="memo box">
             <h3>오늘 메모</h3>
             <textarea id="memoInput" placeholder="핵심만 간단히 기록하세요."></textarea>
@@ -97,7 +117,7 @@
   <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-label="학습자 정보">
     <div class="profile-modal-card box">
       <h2>학습자 정보 입력</h2>
-      <p>이름/반/번호/사진은 현재 기기에 저장되어 유지됩니다.</p>
+      <p>처음에는 개인 수준을 확인하는 간단한 테스트가 진행됩니다. 테스트는 한 번만 진행하면 되고, 원하면 건너뛰기 버튼으로 바로 넘어갈 수 있습니다.</p>
       <div class="profile-grid">
         <label>반 (1~8)<input id="profileClassInput" type="number" min="1" max="8" /></label>
         <label>번호 (1~35)<input id="profileNumberInput" type="number" min="1" max="35" /></label>
@@ -107,6 +127,25 @@
       <p id="profileModalMsg" class="profile-modal-msg"></p>
       <div class="profile-modal-actions"><button id="profileSaveBtn" type="button">저장</button></div>
     </div>
+  </div>
+
+
+  <div id="musicWidget" class="music-widget box" aria-label="배경 음악 플레이어">
+    <button id="musicDockToggle" type="button" class="music-dock-toggle" title="펼치기">◀</button>
+    <div class="music-header"><h3>🎵 BGM</h3><div class="music-head-actions"><button id="musicMinBtn" type="button" class="music-min-btn" title="최소화">－</button><span id="musicGrip" class="music-grip" title="드래그해서 이동">이동</span></div></div>
+    <div class="music-row">
+      <input id="musicUrlInput" type="url" placeholder="오디오 URL 붙여넣기 (mp3, ogg...)" />
+      <button id="musicAddBtn" type="button">추가</button>
+    </div>
+    <div class="music-controls">
+      <button id="musicPrevBtn" type="button" title="이전">⏮</button>
+      <button id="musicPlayBtn" type="button">▶️ 재생</button>
+      <button id="musicNextBtn" type="button" title="다음">⏭</button>
+    </div>
+    <audio id="musicAudio" preload="metadata"></audio>
+    <iframe id="musicYoutubeFrame" class="music-youtube" title="YouTube player" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <ol id="musicPlaylist" class="music-playlist"></ol>
+    <p id="musicMsg" class="music-msg"></p>
   </div>
 
   <script src="./scripts/portal.js"></script>
