@@ -1,17 +1,16 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
     branches:
       - main
       - work
+  push:
+    branches:
+      - main
+      - work
+      - 'codex/**'
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -32,7 +31,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Validate frontend script syntax (index)
         run: node --check scripts/index.js
