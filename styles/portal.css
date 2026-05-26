@@ -78,9 +78,12 @@ body.ink-on #inkLayer{pointer-events:auto;cursor:crosshair}
 
 .ai-api-row{display:flex;gap:8px;flex-wrap:wrap}.ai-api-row input{flex:1;min-width:260px;border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit}.ai-api-row button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;font-weight:600;cursor:pointer}
 
-.music-dock-toggle{position:absolute;left:-34px;top:14px;width:34px;height:34px;border:1px solid var(--line);border-right:none;border-radius:10px 0 0 10px;background:#fff;cursor:pointer;font-weight:800;display:none}
-.music-widget.minimized{transform:translateX(calc(100% + 22px));transition:transform .22s ease}
-.music-widget.minimized .music-dock-toggle{display:block}
+.music-dock-toggle{position:absolute;top:14px;width:58px;height:34px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800;display:none;font-size:.75rem}
+.music-widget.minimized{transition:transform .22s ease}
+.music-widget.minimized.dock-right{transform:translateX(calc(100% + 22px))}
+.music-widget.minimized.dock-left{transform:translateX(calc(-100% - 22px))}
+.music-widget.minimized.dock-right .music-dock-toggle{display:block;left:-58px;border-right:none;border-radius:10px 0 0 10px}
+.music-widget.minimized.dock-left .music-dock-toggle{display:block;right:-58px;border-left:none;border-radius:0 10px 10px 0}
 .music-widget.minimized .music-min-btn{display:none}
 
 .ai-quiz{grid-column:1/-1;padding:14px;display:grid;gap:8px}.ai-quiz-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}.ai-quiz-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;display:grid;gap:8px}.ai-quiz-card h4{font-size:.86rem;color:#475569}.ai-quiz-card p{font-size:.88rem;line-height:1.45}.ai-quiz-card textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:inherit;resize:vertical}.ai-quiz-card button{justify-self:end;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;font-weight:600}.ai-quiz-card .ai-feedback{font-size:.8rem;color:#2563eb;min-height:1.2em}

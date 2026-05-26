@@ -574,9 +574,16 @@ function initMusicWidget() {
   audio.addEventListener('error', () => { setMsg('오디오를 불러오지 못했습니다. URL을 확인해 주세요.'); });
 
   function setDockState(minimized) {
+    if (minimized) {
+      const rect = widget.getBoundingClientRect();
+      const centerX = rect.left + (rect.width / 2);
+      const dockLeft = centerX < (window.innerWidth / 2);
+      widget.classList.toggle('dock-left', dockLeft);
+      widget.classList.toggle('dock-right', !dockLeft);
+    }
     widget.classList.toggle('minimized', minimized);
     minBtn.title = minimized ? '펼치기' : '최소화';
-    dockToggleBtn.textContent = minimized ? '◀' : '▶';
+    dockToggleBtn.textContent = minimized ? '펼치기' : '숨기기';
     dockToggleBtn.title = minimized ? '펼치기' : '숨기기';
   }
 
