@@ -54,6 +54,7 @@ const memoSaveBtn = document.getElementById('memoSaveBtn');
 const memoMsgEl = document.getElementById('memoMsg');
 const aiSourceInput = document.getElementById('aiSourceInput');
 const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+const aiAnalyzeFrameBtn = document.getElementById('aiAnalyzeFrameBtn');
 const aiMsgEl = document.getElementById('aiMsg');
 const aiSummaryEl = document.getElementById('aiSummary');
 const aiQuestionListEl = document.getElementById('aiQuestionList');
@@ -629,6 +630,24 @@ function initMusicWidgetDrag(widget) {
 initAiCoach();
 
 
+
+function extractTextFromCurrentFrame() {
+  if (!frame || !frame.contentDocument) return '';
+  const bodyText = frame.contentDocument.body ? frame.contentDocument.body.innerText : '';
+  return (bodyText || '').replace(/\s+/g, ' ').trim();
+}
+
+function runAiLearning(raw) {
+  const summary = summarizeForAi(raw);
+  const questions = buildQuestionsFromText(raw);
+  const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
+  bank.push({ date: new Date().toISOString().slice(0, 10), length: summary.totalLength, points: summary.points });
+  localStorage.setItem(AI_CONTENT_BANK_KEY, JSON.stringify(bank.slice(-200)));
+  localStorage.setItem(AI_QUESTIONS_KEY, JSON.stringify(questions));
+  aiMsgEl.textContent = `자동 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+  renderAiCoach();
+}
+
 function summarizeForAi(raw) {
   const cleaned = raw.replace(/\s+/g, ' ').trim();
   const pieces = cleaned.split(/[.!?]/).map((s) => s.trim()).filter(Boolean);
@@ -671,22 +690,22 @@ function renderAiCoach() {
 }
 
 function initAiCoach() {
-  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl) return;
+  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl || !aiAnalyzeFrameBtn) return;
   renderAiCoach();
   aiAnalyzeBtn.addEventListener('click', () => {
     const raw = (aiSourceInput.value || '').trim();
     if (!raw) { aiMsgEl.textContent = '학습 내용을 입력해 주세요.'; return; }
-    const summary = summarizeForAi(raw);
-    const questions = buildQuestionsFromText(raw);
-    const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
-    bank.push({ date: new Date().toISOString().slice(0, 10), length: summary.totalLength, points: summary.points });
-    localStorage.setItem(AI_CONTENT_BANK_KEY, JSON.stringify(bank.slice(-200)));
-    localStorage.setItem(AI_QUESTIONS_KEY, JSON.stringify(questions));
-    aiMsgEl.textContent = `자동 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+    runAiLearning(raw);
     aiSourceInput.value = '';
-    renderAiCoach();
+  });
+
+  aiAnalyzeFrameBtn.addEventListener('click', () => {
+    const raw = extractTextFromCurrentFrame();
+    if (!raw) { aiMsgEl.textContent = '현재 학습 페이지에서 분석할 텍스트를 찾지 못했습니다.'; return; }
+    runAiLearning(raw);
   });
 }
+
 
 window.showDashboard = showDashboard;
 window.showSubject = showSubject;
