@@ -52,6 +52,12 @@ const goalMsgEl = document.getElementById('goalMsg');
 const memoInput = document.getElementById('memoInput');
 const memoSaveBtn = document.getElementById('memoSaveBtn');
 const memoMsgEl = document.getElementById('memoMsg');
+const aiSourceInput = document.getElementById('aiSourceInput');
+const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+const aiAnalyzeFrameBtn = document.getElementById('aiAnalyzeFrameBtn');
+const aiMsgEl = document.getElementById('aiMsg');
+const aiSummaryEl = document.getElementById('aiSummary');
+const aiQuestionListEl = document.getElementById('aiQuestionList');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
@@ -61,6 +67,8 @@ const PROFILE_NAME_KEY = 'studymax_profile_name';
 const PROFILE_CLASS_KEY = 'studymax_profile_class';
 const PROFILE_NUMBER_KEY = 'studymax_profile_number';
 const PROFILE_PHOTO_KEY = 'studymax_profile_photo';
+const AI_CONTENT_BANK_KEY = 'studymax_ai_content_bank_v1';
+const AI_QUESTIONS_KEY = 'studymax_ai_questions_v1';
 
 function getClassNumberFromAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY) || '';
@@ -395,6 +403,309 @@ if (memoSaveBtn) memoSaveBtn.addEventListener('click', saveMemo);
 if (memoInput) memoInput.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveMemo(); });
 initProfileModal();
 initGlobalInk();
+initMusicWidget();
+
+
+function initMusicWidget() {
+  const urlInput = document.getElementById('musicUrlInput');
+  const addBtn = document.getElementById('musicAddBtn');
+  const playBtn = document.getElementById('musicPlayBtn');
+  const minBtn = document.getElementById('musicMinBtn');
+  const prevBtn = document.getElementById('musicPrevBtn');
+  const nextBtn = document.getElementById('musicNextBtn');
+  const listEl = document.getElementById('musicPlaylist');
+  const msgEl = document.getElementById('musicMsg');
+  const audio = document.getElementById('musicAudio');
+  const youtubeFrame = document.getElementById('musicYoutubeFrame');
+  const widget = document.getElementById('musicWidget');
+  if (!urlInput || !addBtn || !playBtn || !prevBtn || !nextBtn || !listEl || !msgEl || !audio || !widget || !minBtn || !youtubeFrame) return;
+  initMusicWidgetDrag(widget);
+
+  const MUSIC_LIST_KEY = 'studymax_music_playlist_v1';
+  const MUSIC_INDEX_KEY = 'studymax_music_playlist_index_v1';
+  let playlist = [];
+  let currentIndex = -1;
+  let currentMode = 'audio';
+
+  function setMsg(text) {
+    msgEl.textContent = text;
+    if (!text) return;
+    setTimeout(() => { if (msgEl.textContent === text) msgEl.textContent = ''; }, 1800);
+  }
+
+  function persist() {
+    localStorage.setItem(MUSIC_LIST_KEY, JSON.stringify(playlist));
+    localStorage.setItem(MUSIC_INDEX_KEY, String(currentIndex));
+  }
+
+  function loadSaved() {
+    try {
+      const raw = localStorage.getItem(MUSIC_LIST_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) playlist = parsed.filter((x) => typeof x === 'string' && x.trim());
+      const idx = Number(localStorage.getItem(MUSIC_INDEX_KEY));
+      currentIndex = Number.isInteger(idx) && idx >= 0 && idx < playlist.length ? idx : (playlist.length ? 0 : -1);
+    } catch (_) {
+      playlist = [];
+      currentIndex = -1;
+    }
+  }
+
+  function labelFromUrl(url) {
+    try {
+      const u = new URL(url);
+      return decodeURIComponent(u.pathname.split('/').filter(Boolean).pop() || u.hostname);
+    } catch (_) {
+      return url;
+    }
+  }
+
+
+  function parseYoutubeId(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1) || '';
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v') || '';
+      return '';
+    } catch (_) { return ''; }
+  }
+  function stopYoutube() {
+    youtubeFrame.src = 'about:blank';
+    youtubeFrame.style.display = 'none';
+  }
+  function stopAudio() {
+    audio.pause();
+    audio.removeAttribute('src');
+  }
+
+  function renderList() {
+    listEl.innerHTML = '';
+    playlist.forEach((url, i) => {
+      const li = document.createElement('li');
+      li.textContent = `${i + 1}. ${labelFromUrl(url)}`;
+      li.classList.toggle('active', i === currentIndex);
+      li.title = url;
+      li.addEventListener('click', () => {
+        currentIndex = i;
+        loadCurrent(true);
+      });
+      listEl.appendChild(li);
+    });
+  }
+
+  function loadCurrent(autoplay = false) {
+    if (currentIndex < 0 || currentIndex >= playlist.length) {
+      audio.removeAttribute('src');
+      playBtn.textContent = '▶️ 재생';
+      renderList();
+      persist();
+      return;
+    }
+    const rawUrl = playlist[currentIndex];
+    const yid = parseYoutubeId(rawUrl);
+    if (yid) {
+      currentMode = 'youtube';
+      stopAudio();
+      youtubeFrame.style.display = 'block';
+      youtubeFrame.src = `https://www.youtube.com/embed/${yid}?autoplay=${autoplay ? 1 : 0}&rel=0`;
+      playBtn.textContent = autoplay ? '⏸ 일시정지' : '▶️ 재생';
+    } else {
+      currentMode = 'audio';
+      stopYoutube();
+      audio.src = rawUrl;
+      audio.load();
+      if (autoplay) {
+        audio.play().then(() => { playBtn.textContent = '⏸ 일시정지'; }).catch(() => {
+          setMsg('브라우저 정책으로 자동 재생이 차단될 수 있어요. 재생 버튼을 눌러주세요.');
+        });
+      }
+    }
+    renderList();
+    persist();
+  }
+
+  function addUrl() {
+    const url = (urlInput.value || '').trim();
+    if (!url) { setMsg('URL을 입력해 주세요.'); return; }
+    try { new URL(url); } catch (_) { setMsg('유효한 URL 형식이 아닙니다.'); return; }
+    playlist.push(url);
+    if (currentIndex === -1) currentIndex = 0;
+    urlInput.value = '';
+    loadCurrent(false);
+    setMsg('재생목록에 추가되었습니다.');
+  }
+
+  function move(delta) {
+    if (!playlist.length) { setMsg('재생목록이 비어 있습니다.'); return; }
+    currentIndex = (currentIndex + delta + playlist.length) % playlist.length;
+    loadCurrent(true);
+  }
+
+  addBtn.addEventListener('click', addUrl);
+  urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addUrl(); });
+  playBtn.addEventListener('click', () => {
+    if (!playlist.length) { setMsg('먼저 URL을 추가해 주세요.'); return; }
+    if (!audio.src) loadCurrent(false);
+    if (currentMode === 'youtube') {
+      const yid = parseYoutubeId(playlist[currentIndex] || '');
+      if (!yid) return;
+      const isPaused = playBtn.textContent.includes('재생');
+      youtubeFrame.src = `https://www.youtube.com/embed/${yid}?autoplay=${isPaused ? 1 : 0}&rel=0`;
+      playBtn.textContent = isPaused ? '⏸ 일시정지' : '▶️ 재생';
+      return;
+    }
+    if (audio.paused) {
+      audio.play().then(() => { playBtn.textContent = '⏸ 일시정지'; }).catch(() => setMsg('재생할 수 없는 URL입니다. 오디오 파일 URL인지 확인해 주세요.'));
+    } else {
+      audio.pause();
+      playBtn.textContent = '▶️ 재생';
+    }
+  });
+  prevBtn.addEventListener('click', () => move(-1));
+  nextBtn.addEventListener('click', () => move(1));
+  audio.addEventListener('ended', () => move(1));
+  audio.addEventListener('play', () => { playBtn.textContent = '⏸ 일시정지'; });
+  audio.addEventListener('pause', () => { playBtn.textContent = '▶️ 재생'; });
+  audio.addEventListener('error', () => { setMsg('오디오를 불러오지 못했습니다. URL을 확인해 주세요.'); });
+
+  minBtn.addEventListener('click', () => {
+    widget.classList.toggle('minimized');
+    const minimized = widget.classList.contains('minimized');
+    minBtn.textContent = minimized ? '＋' : '－';
+    minBtn.title = minimized ? '펼치기' : '최소화';
+  });
+
+  loadSaved();
+  renderList();
+  if (currentIndex >= 0) loadCurrent(false);
+}
+
+
+function initMusicWidgetDrag(widget) {
+  const grip = document.getElementById('musicGrip');
+  if (!grip || !widget) return;
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  const move = (e) => {
+    if (!dragging) return;
+    const nx = e.clientX - offsetX;
+    const ny = e.clientY - offsetY;
+    const maxX = window.innerWidth - widget.offsetWidth;
+    const maxY = window.innerHeight - widget.offsetHeight;
+    widget.style.left = `${Math.max(0, Math.min(nx, maxX))}px`;
+    widget.style.top = `${Math.max(0, Math.min(ny, maxY))}px`;
+    e.preventDefault();
+  };
+
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    widget.classList.remove('dragging');
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', end);
+    window.removeEventListener('pointercancel', end);
+    try { grip.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+
+  grip.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    widget.classList.add('dragging');
+    const rect = widget.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    widget.style.left = `${rect.left}px`;
+    widget.style.top = `${rect.top}px`;
+    widget.style.right = 'auto';
+    widget.style.bottom = 'auto';
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    e.preventDefault();
+  }, { passive: false });
+}
+
+initAiCoach();
+
+
+
+function extractTextFromCurrentFrame() {
+  if (!frame || !frame.contentDocument) return '';
+  const bodyText = frame.contentDocument.body ? frame.contentDocument.body.innerText : '';
+  return (bodyText || '').replace(/\s+/g, ' ').trim();
+}
+
+function runAiLearning(raw) {
+  const summary = summarizeForAi(raw);
+  const questions = buildQuestionsFromText(raw);
+  const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
+  bank.push({ date: new Date().toISOString().slice(0, 10), length: summary.totalLength, points: summary.points });
+  localStorage.setItem(AI_CONTENT_BANK_KEY, JSON.stringify(bank.slice(-200)));
+  localStorage.setItem(AI_QUESTIONS_KEY, JSON.stringify(questions));
+  aiMsgEl.textContent = `자동 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+  renderAiCoach();
+}
+
+function summarizeForAi(raw) {
+  const cleaned = raw.replace(/\s+/g, ' ').trim();
+  const pieces = cleaned.split(/[.!?]/).map((s) => s.trim()).filter(Boolean);
+  const points = pieces.slice(0, 3);
+  return {
+    totalLength: cleaned.length,
+    points
+  };
+}
+
+function buildQuestionsFromText(raw) {
+  const words = raw
+    .replace(/[^0-9a-zA-Z가-힣\s]/g, ' ')
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length >= 2);
+  const uniq = [];
+  for (const w of words) { if (!uniq.includes(w)) uniq.push(w); if (uniq.length >= 6) break; }
+  if (!uniq.length) return [];
+  const q = [];
+  q.push(`핵심 키워드 3개를 고르고 각 키워드의 의미를 설명해 보세요. (후보: ${uniq.slice(0, 6).join(', ')})`);
+  q.push(`위 내용의 흐름을 3단계(시작-핵심-정리)로 요약해 보세요.`);
+  q.push(`오늘 학습 후 바로 복습이 필요한 부분 1개를 고르고 이유를 쓰세요.`);
+  if (uniq[0]) q.push(`"${uniq[0]}"를 처음 배우는 친구에게 2문장으로 설명해 보세요.`);
+  return q;
+}
+
+function renderAiCoach() {
+  if (!aiSummaryEl || !aiQuestionListEl) return;
+  const savedQ = JSON.parse(localStorage.getItem(AI_QUESTIONS_KEY) || '[]');
+  aiQuestionListEl.innerHTML = '';
+  if (Array.isArray(savedQ)) savedQ.forEach((x) => { const li = document.createElement('li'); li.textContent = x; aiQuestionListEl.appendChild(li); });
+  const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
+  if (Array.isArray(bank) && bank.length) {
+    const last = bank[bank.length - 1];
+    aiSummaryEl.textContent = `누적 학습 데이터 ${bank.length}건 · 최근 입력 ${last.date} · 길이 ${last.length}자`;
+  } else {
+    aiSummaryEl.textContent = '아직 학습 데이터가 없습니다.';
+  }
+}
+
+function initAiCoach() {
+  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl || !aiAnalyzeFrameBtn) return;
+  renderAiCoach();
+  aiAnalyzeBtn.addEventListener('click', () => {
+    const raw = (aiSourceInput.value || '').trim();
+    if (!raw) { aiMsgEl.textContent = '학습 내용을 입력해 주세요.'; return; }
+    runAiLearning(raw);
+    aiSourceInput.value = '';
+  });
+
+  aiAnalyzeFrameBtn.addEventListener('click', () => {
+    const raw = extractTextFromCurrentFrame();
+    if (!raw) { aiMsgEl.textContent = '현재 학습 페이지에서 분석할 텍스트를 찾지 못했습니다.'; return; }
+    runAiLearning(raw);
+  });
+}
+
 
 window.showDashboard = showDashboard;
 window.showSubject = showSubject;
