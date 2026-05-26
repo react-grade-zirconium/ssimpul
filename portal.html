@@ -109,6 +109,23 @@
     </div>
   </div>
 
+
+  <div id="musicWidget" class="music-widget box" aria-label="배경 음악 플레이어">
+    <h3>🎵 BGM</h3>
+    <div class="music-row">
+      <input id="musicUrlInput" type="url" placeholder="오디오 URL 붙여넣기 (mp3, ogg...)" />
+      <button id="musicAddBtn" type="button">추가</button>
+    </div>
+    <div class="music-controls">
+      <button id="musicPrevBtn" type="button" title="이전">⏮</button>
+      <button id="musicPlayBtn" type="button">▶️ 재생</button>
+      <button id="musicNextBtn" type="button" title="다음">⏭</button>
+    </div>
+    <audio id="musicAudio" preload="metadata"></audio>
+    <ol id="musicPlaylist" class="music-playlist"></ol>
+    <p id="musicMsg" class="music-msg"></p>
+  </div>
+
   <script src="./scripts/portal.js"></script>
 </body>
 </html>
