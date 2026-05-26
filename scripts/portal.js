@@ -52,6 +52,11 @@ const goalMsgEl = document.getElementById('goalMsg');
 const memoInput = document.getElementById('memoInput');
 const memoSaveBtn = document.getElementById('memoSaveBtn');
 const memoMsgEl = document.getElementById('memoMsg');
+const aiSourceInput = document.getElementById('aiSourceInput');
+const aiAnalyzeBtn = document.getElementById('aiAnalyzeBtn');
+const aiMsgEl = document.getElementById('aiMsg');
+const aiSummaryEl = document.getElementById('aiSummary');
+const aiQuestionListEl = document.getElementById('aiQuestionList');
 
 const FINAL_EXAM_DATE = '2026-06-29';
 const GOAL_STORAGE_KEY = 'studymax_personal_goal';
@@ -61,6 +66,8 @@ const PROFILE_NAME_KEY = 'studymax_profile_name';
 const PROFILE_CLASS_KEY = 'studymax_profile_class';
 const PROFILE_NUMBER_KEY = 'studymax_profile_number';
 const PROFILE_PHOTO_KEY = 'studymax_profile_photo';
+const AI_CONTENT_BANK_KEY = 'studymax_ai_content_bank_v1';
+const AI_QUESTIONS_KEY = 'studymax_ai_questions_v1';
 
 function getClassNumberFromAccessCode() {
   const code = localStorage.getItem(ACCESS_CODE_KEY) || '';
@@ -571,6 +578,68 @@ function initMusicWidgetDrag(widget) {
     window.addEventListener('pointercancel', end);
     e.preventDefault();
   }, { passive: false });
+}
+
+initAiCoach();
+
+
+function summarizeForAi(raw) {
+  const cleaned = raw.replace(/\s+/g, ' ').trim();
+  const pieces = cleaned.split(/[.!?]/).map((s) => s.trim()).filter(Boolean);
+  const points = pieces.slice(0, 3);
+  return {
+    totalLength: cleaned.length,
+    points
+  };
+}
+
+function buildQuestionsFromText(raw) {
+  const words = raw
+    .replace(/[^0-9a-zA-Z가-힣\s]/g, ' ')
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length >= 2);
+  const uniq = [];
+  for (const w of words) { if (!uniq.includes(w)) uniq.push(w); if (uniq.length >= 6) break; }
+  if (!uniq.length) return [];
+  const q = [];
+  q.push(`핵심 키워드 3개를 고르고 각 키워드의 의미를 설명해 보세요. (후보: ${uniq.slice(0, 6).join(', ')})`);
+  q.push(`위 내용의 흐름을 3단계(시작-핵심-정리)로 요약해 보세요.`);
+  q.push(`오늘 학습 후 바로 복습이 필요한 부분 1개를 고르고 이유를 쓰세요.`);
+  if (uniq[0]) q.push(`"${uniq[0]}"를 처음 배우는 친구에게 2문장으로 설명해 보세요.`);
+  return q;
+}
+
+function renderAiCoach() {
+  if (!aiSummaryEl || !aiQuestionListEl) return;
+  const savedQ = JSON.parse(localStorage.getItem(AI_QUESTIONS_KEY) || '[]');
+  aiQuestionListEl.innerHTML = '';
+  if (Array.isArray(savedQ)) savedQ.forEach((x) => { const li = document.createElement('li'); li.textContent = x; aiQuestionListEl.appendChild(li); });
+  const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
+  if (Array.isArray(bank) && bank.length) {
+    const last = bank[bank.length - 1];
+    aiSummaryEl.textContent = `누적 학습 데이터 ${bank.length}건 · 최근 입력 ${last.date} · 길이 ${last.length}자`;
+  } else {
+    aiSummaryEl.textContent = '아직 학습 데이터가 없습니다.';
+  }
+}
+
+function initAiCoach() {
+  if (!aiSourceInput || !aiAnalyzeBtn || !aiMsgEl) return;
+  renderAiCoach();
+  aiAnalyzeBtn.addEventListener('click', () => {
+    const raw = (aiSourceInput.value || '').trim();
+    if (!raw) { aiMsgEl.textContent = '학습 내용을 입력해 주세요.'; return; }
+    const summary = summarizeForAi(raw);
+    const questions = buildQuestionsFromText(raw);
+    const bank = JSON.parse(localStorage.getItem(AI_CONTENT_BANK_KEY) || '[]');
+    bank.push({ date: new Date().toISOString().slice(0, 10), length: summary.totalLength, points: summary.points });
+    localStorage.setItem(AI_CONTENT_BANK_KEY, JSON.stringify(bank.slice(-200)));
+    localStorage.setItem(AI_QUESTIONS_KEY, JSON.stringify(questions));
+    aiMsgEl.textContent = `자동 학습 완료: 핵심 포인트 ${summary.points.length}개, 문제 ${questions.length}개 생성`;
+    aiSourceInput.value = '';
+    renderAiCoach();
+  });
 }
 
 window.showDashboard = showDashboard;
